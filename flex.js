@@ -1,4 +1,7 @@
 
+// A 'scale' can be [min,max] OR [max.min]
+// A 'range' is [min,max]
+
 function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
     var w = w;
     var h = h;
@@ -56,40 +59,58 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
     }
     
     function adjustScale(range) {
-        if (range.x[0] < xscale[0]) {
-            xscale[0] = range.x[0]
+        if (xscale[0] < xscale[1]) {
+            if (range.x[0] < xscale[0]) {
+                xscale[0] = range.x[0]
+            }
+            if (range.x[1] > xscale[1]) {
+                xscale[1] = range.x[1]
+            }
+        } else {
+            if (range.x[0] < xscale[1]) {
+                xscale[1] = range.x[0]
+            }
+            if (range.x[1] > xscale[0]) {
+                xscale[0] = range.x[1]
+            }
         }
-        if (range.x[1] > xscale[1]) {
-            xscale[1] = range.x[1]
-        }
-        if (range.y[0] < yscale[0]) {
-            yscale[0] = range.y[0]
-        }
-        if (range.y[1] > yscale[1]) {
-            yscale[1] = range.y[1]
+        if (yscale[0] < yscale[1]) {
+            if (range.y[0] < yscale[0]) {
+                yscale[0] = range.y[0]
+            }
+            if (range.y[1] > yscale[1]) {
+                yscale[1] = range.y[1]
+            }
+        } else {
+            if (range.y[0] < yscale[1]) {
+                yscale[1] = range.y[0]
+            }
+            if (range.y[1] > yscale[0]) {
+                yscale[0] = range.y[1]
+            }
         }
     }
     
     function adjustSize(range, force=false) {
-        var xrange = xscale[1] - xscale[0];
+        var xrange = Math.abs(xscale[1] - xscale[0]);
         var newxrange;
         if (force) {
             newxrange = range.x[1] - range.x[0];
         } else { 
-            newxrange = Math.max(range.x[1], xscale[1]) - 
-                Math.min(range.x[0], xscale[0]);
+            newxrange = Math.max(range.x[1], xscale[0], xscale[1]) - 
+                Math.min(range.x[0], xscale[0], xscale[1]);
         }
         w = w*newxrange/xrange;
         svg.setAttribute("width", w);
         parentsvg.setAttribute("width", w + paddingLeft + paddingRight);
         foreignObject.setAttribute("width", w + paddingLeft + paddingRight);
-        var yrange = yscale[1] - yscale[0];
+        var yrange = Math.abs(yscale[1] - yscale[0]);
         var newyrange;
         if (force) {
             newyrange = range.y[1] - range.y[0];
         } else { 
-            newyrange = Math.max(range.y[1], yscale[1]) - 
-                Math.min(range.y[0], yscale[0]);
+            newyrange = Math.max(range.y[1], yscale[0], yscale[1]) - 
+                Math.min(range.y[0], yscale[0], yscale[1]);
         }
         h = h*newyrange/yrange;
         svg.setAttribute("height", h);
@@ -157,8 +178,16 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
 	    // Change scale based on content, but NOT size
 	    // AND reduce scale if necessary
 	    range = childRange(range);
-            xscale = range.x;
-            yscale = range.y
+            if (xscale[0] < xscale[1]) {
+                xscale = range.x;
+            } else {
+                xscale = [ range.x[1], range.x[0] ];
+            }
+            if (yscale[0] < yscale[1]) {
+                yscale = range.y
+            } else {
+                yscale = [ range.y[1], range.y[0] ];
+            }
             for (var i = 0; i < children.length; i++) {
                 children[i].update(this);
             }
@@ -166,8 +195,10 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
 	case "zoom":
 	    // Change scale based on content, but NOT size
 	    // BUT only expand scale (do not reduce)
-            if (range.x[0] < xscale[0] || range.x[1] > xscale[1] ||
-                range.y[0] < yscale[0] || range.y[1] > yscale[1]) {
+            if (range.x[0] < Math.min(xscale[0], xscale[1]) || 
+                range.x[1] > Math.max(xscale[0], xscale[1]) ||
+                range.y[0] < Math.min(yscale[0], yscale[1]) || 
+                range.y[1] > Math.max(yscale[0], yscale[1])) {
 		adjustScale(range);
 		for (var i = 0; i < children.length; i++) {
                     children[i].update(this);
@@ -180,8 +211,16 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
 	    var range = child.range();
 	    range = childRange(range);
             adjustSize(range, true);
-            xscale = range.x;
-            yscale = range.y
+            if (xscale[0] < xscale[1]) {
+                xscale = range.x;
+            } else {
+                xscale = [ range.x[1], range.x[0] ];
+            }
+            if (yscale[0] < yscale[1]) {
+                yscale = range.y
+            } else {
+                yscale = [ range.y[1], range.y[0] ];
+            }
             for (var i = 0; i < children.length; i++) {
                 children[i].update(this);
             }
@@ -189,8 +228,10 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
 	case "grow":
 	    // Change scale AND size based on content
 	    // BUT only grow (do not shrink)
-            if (range.x[0] < xscale[0] || range.x[1] > xscale[1] ||
-                range.y[0] < yscale[0] || range.y[1] > yscale[1]) {
+            if (range.x[0] < Math.min(xscale[0], xscale[1]) || 
+                range.x[1] > Math.max(xscale[0], xscale[1]) ||
+                range.y[0] < Math.min(yscale[0], yscale[1]) || 
+                range.y[1] > Math.max(yscale[0], yscale[1])) {
                 adjustSize(range);
 		adjustScale(range);
 		for (var i = 0; i < children.length; i++) {
@@ -230,10 +271,22 @@ function points(x, y) {
     function position(child, i, parent) {
         var xs = parent.xscale();
         var ys = parent.yscale();
-        child.setAttribute("cx", 
-                           parent.width()*(x[i] - xs[0])/(xs[1] - xs[0]));
-        child.setAttribute("cy", 
-                           parent.height()*(y[i] - ys[0])/(ys[1] - ys[0]));
+        if (xs[0] < xs[1]) {
+            child.setAttribute("cx", 
+                               parent.width()*(x[i] - xs[0])/(xs[1] - xs[0]));
+        } else {
+            child.setAttribute("cx", 
+                               parent.width()*
+                               (1 - (x[i] - xs[1])/(xs[0] - xs[1])));
+        }
+        if (ys[0] < ys[1]) {
+            child.setAttribute("cy", 
+                               parent.height()*(y[i] - ys[0])/(ys[1] - ys[0]));
+        } else {
+            child.setAttribute("cy", 
+                               parent.height()*
+                               (1 - (y[i] - ys[1])/(ys[0] - ys[1])));
+        }
     }
     
     this.range = function() {
@@ -274,10 +327,22 @@ function text(lab, x, y) {
     function position(child, i, parent) {
         var xs = parent.xscale();
         var ys = parent.yscale();
-        child.setAttribute("x", 
-                           parent.width()*(x[i] - xs[0])/(xs[1] - xs[0]));
-        child.setAttribute("y", 
-                           parent.height()*(y[i] - ys[0])/(ys[1] - ys[0]));
+        if (xs[0] < xs[1]) {
+            child.setAttribute("x", 
+                               parent.width()*(x[i] - xs[0])/(xs[1] - xs[0]));
+        } else {
+            child.setAttribute("x", 
+                               parent.width()*
+                               (1 - (x[i] - xs[1])/(xs[0] - xs[1])));
+        } 
+        if (ys[0] < ys[1]) {
+            child.setAttribute("y", 
+                               parent.height()*(y[i] - ys[0])/(ys[1] - ys[0]));
+        } else {
+            child.setAttribute("y", 
+                               parent.height()*
+                               (1 - (y[i] - ys[1])/(ys[0] - ys[1])));
+        }
     }
     
     this.range = function() {
