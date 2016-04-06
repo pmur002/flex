@@ -1,4 +1,8 @@
 
+createSVG = function(elt) {
+    return document.createElementNS("http://www.w3.org/2000/svg", elt);
+}
+
 // A 'scale' can be [min,max] OR [max.min]
 // A 'range' is [min,max]
 
@@ -13,8 +17,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
     var paddingBottom = 0;
     var children = [];
 
-    var parentsvg = 
-        document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    var parentsvg = createSVG("svg");
     parentsvg.setAttribute("x", x);
     parentsvg.setAttribute("y", y);
     parentsvg.setAttribute("width", w);
@@ -24,8 +27,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
     
     // Firefox needs width/height on <foreignObject/> 
     // (Chrome does not)
-    var foreignObject =
-        document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+    var foreignObject = createSVG("foreignObject");
     foreignObject.setAttribute("x", x);
     foreignObject.setAttribute("y", y);
     foreignObject.setAttribute("width", w);
@@ -39,7 +41,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
     body.setAttribute("style", "margin: 0");
     html.appendChild(body);
 
-    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    var svg = createSVG("svg");
     svg.setAttribute("x", x);
     svg.setAttribute("y", y);
     svg.setAttribute("width", w);
@@ -295,11 +297,10 @@ function points(x, y) {
     }
     
     this.build = function(parent) {
-        svg = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        svg = createSVG("g");
         var n = x.length;
         for (var i = 0; i < n; i++) {
-            var c = document.createElementNS("http://www.w3.org/2000/svg", 
-                                             "circle");
+            var c = createSVG("circle");
             position(c, i, parent);
             c.setAttribute("r", 3);
             svg.appendChild(c);
@@ -351,11 +352,10 @@ function text(lab, x, y) {
     }
     
     this.build = function(parent) {
-        svg = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        svg = createSVG("g");
         var n = x.length;
         for (var i = 0; i < n; i++) {
-            var t = document.createElementNS("http://www.w3.org/2000/svg", 
-                                             "text");
+            var t = createSVG("text");
             position(t, i, parent);
 	    t.setAttribute("text-anchor", "middle");
 	    t.setAttribute("dominant-baseline", "middle");
