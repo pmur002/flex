@@ -1,3 +1,16 @@
+
+// test xaxis
+
+vp = new viewport(0, 0, 100, 1, [0, 1], [1, 0]);
+vp.init();
+
+xa = new xaxis();
+vp.add(xa, "static", "resize");
+
+// Test reflow = static|resize|rescale|grow|zoom
+
+document.body.appendChild(document.createElement("p"));
+
 vp = new viewport(0, 0, 100, 100, [0, 1], [1, 0]);
 vp.init();
 

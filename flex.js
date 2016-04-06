@@ -3,6 +3,24 @@ createSVG = function(elt) {
     return document.createElementNS("http://www.w3.org/2000/svg", elt);
 }
 
+transformX = function(x, parent) {
+    var xs = parent.xscale();
+    if (xs[0] < xs[1]) {
+        return parent.width()*(x - xs[0])/(xs[1] - xs[0]);
+    } else {
+        return parent.width()*(1 - (x - xs[1])/(xs[0] - xs[1]));
+    }
+}
+
+transformY = function(y, parent) {
+    var ys = parent.yscale();
+    if (ys[0] < ys[1]) {
+        return parent.height()*(y - ys[0])/(ys[1] - ys[0]);
+    } else {
+        return parent.height()*(1 - (y - ys[1])/(ys[0] - ys[1]));
+    }
+}
+
 // A 'scale' can be [min,max] OR [max.min]
 // A 'range' is [min,max]
 
@@ -51,7 +69,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
 
     function childXRange(range) {
 	for (var i = 0; i < children.length; i++) {
-	    crange = children[i].xrange();
+	    crange = children[i].xrange(this);
 	    range = [ Math.min(range[0], crange[0]),
 		       Math.max(range[1], crange[1]) ];
 	}
@@ -60,7 +78,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
     
     function childYRange(range) {
 	for (var i = 0; i < children.length; i++) {
-	    crange = children[i].yrange();
+	    crange = children[i].yrange(this);
 	    range = [ Math.min(range[0], crange[0]),
 		      Math.max(range[1], crange[1]) ];
 	}
@@ -186,7 +204,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
     }
 
     this.add = function(child, reflowx="static", reflowy=reflowx) {
-	var range = child.xrange();
+	var range = child.xrange(this);
         var update = false;
 	switch (reflowx) {
 	case "static":
@@ -235,7 +253,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
 	    }
 	    break;
 	}
-	var range = child.yrange();
+	var range = child.yrange(this);
 	switch (reflowy) {	    
 	case "static":
 	    // Do NOT change size or scale on viewport
@@ -328,31 +346,15 @@ function points(x, y) {
     }
 
     function position(child, i, parent) {
-        var xs = parent.xscale();
-        var ys = parent.yscale();
-        if (xs[0] < xs[1]) {
-            child.setAttribute("cx", 
-                               parent.width()*(x[i] - xs[0])/(xs[1] - xs[0]));
-        } else {
-            child.setAttribute("cx", 
-                               parent.width()*
-                               (1 - (x[i] - xs[1])/(xs[0] - xs[1])));
-        }
-        if (ys[0] < ys[1]) {
-            child.setAttribute("cy", 
-                               parent.height()*(y[i] - ys[0])/(ys[1] - ys[0]));
-        } else {
-            child.setAttribute("cy", 
-                               parent.height()*
-                               (1 - (y[i] - ys[1])/(ys[0] - ys[1])));
-        }
+        child.setAttribute("cx", transformX(x[i], parent));
+        child.setAttribute("cy", transformY(y[i], parent));
     }
     
-    this.xrange = function() {
+    this.xrange = function(parent) {
         return [ Math.min(...x), Math.max(...x) ];
     }
     
-    this.yrange = function() {
+    this.yrange = function(parent) {
         return [ Math.min(...y), Math.max(...y) ];
     }
     
@@ -386,31 +388,15 @@ function text(lab, x, y) {
     }
 
     function position(child, i, parent) {
-        var xs = parent.xscale();
-        var ys = parent.yscale();
-        if (xs[0] < xs[1]) {
-            child.setAttribute("x", 
-                               parent.width()*(x[i] - xs[0])/(xs[1] - xs[0]));
-        } else {
-            child.setAttribute("x", 
-                               parent.width()*
-                               (1 - (x[i] - xs[1])/(xs[0] - xs[1])));
-        } 
-        if (ys[0] < ys[1]) {
-            child.setAttribute("y", 
-                               parent.height()*(y[i] - ys[0])/(ys[1] - ys[0]));
-        } else {
-            child.setAttribute("y", 
-                               parent.height()*
-                               (1 - (y[i] - ys[1])/(ys[0] - ys[1])));
-        }
+        child.setAttribute("x", transformX(x[i], parent));
+        child.setAttribute("y", transformY(y[i], parent));
     }
     
-    this.xrange = function() {
+    this.xrange = function(parent) {
         return [ Math.min(...x), Math.max(...x) ];
     }
     
-    this.yrange = function() {
+    this.yrange = function(parent) {
         return [ Math.min(...y), Math.max(...y) ];
     }
     
@@ -435,6 +421,89 @@ function text(lab, x, y) {
         for (var i = 0; i < children.length; i++) {
             position(children[i], i, parent);
         }
+    }
+}
+
+function xaxis() {
+    // assume lab, x and y same length
+    var svg = null;
+    var children = {};
+
+    this.svg = function() {
+        return svg;
+    }
+
+    function positionChildren(parent) {
+        var xs = parent.xscale();
+        var xs = parent.xscale();
+        var leftTick = Math.min(xs[0], xs[1]);
+        var rightTick = Math.max(xs[0], xs[1]);
+        children.major.setAttribute("x1", transformX(leftTick, parent));
+        children.major.setAttribute("x2", transformX(rightTick, parent));
+        children.major.setAttribute("y1", 1);
+        children.major.setAttribute("y2", 1);
+        children.tick1.setAttribute("x1", transformX(leftTick, parent));
+        children.tick1.setAttribute("x2", transformX(leftTick, parent));
+        children.tick1.setAttribute("y1", 1);
+        children.tick1.setAttribute("y2", .9);
+        children.tick2.setAttribute("x1", transformX(rightTick, parent));
+        children.tick2.setAttribute("x2", transformX(rightTick, parent));
+        children.tick2.setAttribute("y1", 1);
+        children.tick2.setAttribute("y2", .9);
+        children.ticklab1.setAttribute("x", transformX(leftTick, parent));
+        children.ticklab1.setAttribute("y", 1);
+	var textNode = document.createTextNode(leftTick);
+        children.ticklab1.removeChild(children.ticklab1.childNodes[0]);
+        children.ticklab1.appendChild(textNode);
+        children.ticklab2.setAttribute("x", transformX(rightTick, parent));
+        children.ticklab2.setAttribute("y", 1);
+	textNode = document.createTextNode(rightTick);
+        children.ticklab2.removeChild(children.ticklab2.childNodes[0]);
+        children.ticklab2.appendChild(textNode);
+    }
+    
+    this.xrange = function(parent) {
+        var xs = parent.xscale();
+        return [ Math.min(xs[0], xs[1]), Math.max(xs[0], xs[1]) ];
+    }
+    
+    this.yrange = function(parent) {
+        var ys = parent.yscale();
+        return [ Math.min(ys[0], ys[1]), Math.max(ys[0], ys[1]) ];        
+    }
+    
+    this.build = function(parent) {
+        svg = createSVG("g");
+        var major = createSVG("line");
+        svg.appendChild(major);
+        children.major = major;
+        var tick1 = createSVG("line");
+        svg.appendChild(tick1);
+        children.tick1 = tick1;
+        var tick2 = createSVG("line");
+        svg.appendChild(tick2);
+        children.tick2 = tick2;
+        var ticklab1 = createSVG("text");
+	ticklab1.setAttribute("text-anchor", "middle");
+	ticklab1.setAttribute("dominant-baseline", "text-after-edge");
+	var textNode = document.createTextNode("");
+        ticklab1.appendChild(textNode);
+        svg.appendChild(ticklab1);
+        children.ticklab1 = ticklab1;
+        var ticklab2 = createSVG("text");
+	ticklab2.setAttribute("text-anchor", "middle");
+	ticklab2.setAttribute("dominant-baseline", "text-after-edge");
+	var textNode = document.createTextNode("");
+        ticklab2.appendChild(textNode);
+        svg.appendChild(ticklab2);
+        children.ticklab2 = ticklab2;
+
+        positionChildren(parent);
+    }
+
+    // Recalculate position
+    this.update = function(parent) {
+        positionChildren(parent);
     }
 }
 
