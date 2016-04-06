@@ -49,70 +49,83 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
     svg.setAttribute("style", "overflow: visible");
     body.appendChild(svg);
 
-    function childRange(range) {
+    function childXRange(range) {
 	for (var i = 0; i < children.length; i++) {
-	    crange = children[i].range();
-	    range.x = [ Math.min(range.x[0], crange.x[0]),
-			Math.max(range.x[1], crange.x[1]) ];
-	    range.y = [ Math.min(range.y[0], crange.y[0]),
-			Math.max(range.y[1], crange.y[1]) ];
+	    crange = children[i].xrange();
+	    range = [ Math.min(range[0], crange[0]),
+		       Math.max(range[1], crange[1]) ];
 	}
 	return range;
     }
     
-    function adjustScale(range) {
+    function childYRange(range) {
+	for (var i = 0; i < children.length; i++) {
+	    crange = children[i].yrange();
+	    range = [ Math.min(range[0], crange[0]),
+		      Math.max(range[1], crange[1]) ];
+	}
+	return range;
+    }
+    
+    function adjustXScale(range) {
         if (xscale[0] < xscale[1]) {
-            if (range.x[0] < xscale[0]) {
-                xscale[0] = range.x[0]
+            if (range[0] < xscale[0]) {
+                xscale[0] = range[0]
             }
-            if (range.x[1] > xscale[1]) {
-                xscale[1] = range.x[1]
-            }
-        } else {
-            if (range.x[0] < xscale[1]) {
-                xscale[1] = range.x[0]
-            }
-            if (range.x[1] > xscale[0]) {
-                xscale[0] = range.x[1]
-            }
-        }
-        if (yscale[0] < yscale[1]) {
-            if (range.y[0] < yscale[0]) {
-                yscale[0] = range.y[0]
-            }
-            if (range.y[1] > yscale[1]) {
-                yscale[1] = range.y[1]
+            if (range[1] > xscale[1]) {
+                xscale[1] = range[1]
             }
         } else {
-            if (range.y[0] < yscale[1]) {
-                yscale[1] = range.y[0]
+            if (range[0] < xscale[1]) {
+                xscale[1] = range[0]
             }
-            if (range.y[1] > yscale[0]) {
-                yscale[0] = range.y[1]
+            if (range[1] > xscale[0]) {
+                xscale[0] = range[1]
             }
         }
     }
     
-    function adjustSize(range, force=false) {
+    function adjustYScale(range) {
+        if (yscale[0] < yscale[1]) {
+            if (range[0] < yscale[0]) {
+                yscale[0] = range[0]
+            }
+            if (range[1] > yscale[1]) {
+                yscale[1] = range[1]
+            }
+        } else {
+            if (range[0] < yscale[1]) {
+                yscale[1] = range[0]
+            }
+            if (range[1] > yscale[0]) {
+                yscale[0] = range[1]
+            }
+        }
+    }
+    
+    function adjustXSize(range, force=false) {
         var xrange = Math.abs(xscale[1] - xscale[0]);
         var newxrange;
         if (force) {
-            newxrange = range.x[1] - range.x[0];
+            newxrange = range[1] - range[0];
         } else { 
-            newxrange = Math.max(range.x[1], xscale[0], xscale[1]) - 
-                Math.min(range.x[0], xscale[0], xscale[1]);
+            newxrange = Math.max(range[1], xscale[0], xscale[1]) - 
+                Math.min(range[0], xscale[0], xscale[1]);
         }
         w = w*newxrange/xrange;
         svg.setAttribute("width", w);
         parentsvg.setAttribute("width", w + paddingLeft + paddingRight);
         foreignObject.setAttribute("width", w + paddingLeft + paddingRight);
+    }
+
+    function adjustYSize(range, force=false) {
         var yrange = Math.abs(yscale[1] - yscale[0]);
         var newyrange;
         if (force) {
-            newyrange = range.y[1] - range.y[0];
+            newyrange = range[1] - range[0];
         } else { 
-            newyrange = Math.max(range.y[1], yscale[0], yscale[1]) - 
-                Math.min(range.y[0], yscale[0], yscale[1]);
+            newyrange = Math.max(range[1], yscale[0], yscale[1]) - 
+                Math.min(range[0], yscale[0], yscale[1]);
         }
         h = h*newyrange/yrange;
         svg.setAttribute("height", h);
@@ -120,27 +133,29 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
         foreignObject.setAttribute("height", h + paddingTop + paddingBottom);
     }
 
-    function adjustPadding(bbox) {
-        var pleft = "";
-        var pright = "";
-        var ptop = "";
-        var pbottom = "";
+    function adjustXPadding(bbox) {
         if (bbox.x < 0) {
             paddingLeft = Math.abs(bbox.x);
-            pleft = "padding-left:" + paddingLeft + ";";
         }
         if (bbox.x + bbox.width > w) {
             paddingRight = (bbox.width + bbox.x - w);
-            pright = "padding-right:" + paddingRight + ";";
         }
+    }
+
+    function adjustYPadding(bbox) {
         if (bbox.y < 0 ) {
             paddingTop = Math.abs(bbox.y);
-            ptop = "padding-top:" + paddingTop + ";";
         }
         if (bbox.y + bbox.height > h) {
             paddingBottom = (bbox.height + bbox.y - h);
-            pbottom = "padding-bottom:" + paddingBottom + ";";
         }
+    }
+
+    function adjustPadding() {
+        var pleft = "padding-left:" + paddingLeft + ";";
+        var pright = "padding-right:" + paddingRight + ";";
+        var ptop = "padding-top:" + paddingTop + ";";
+        var pbottom = "padding-bottom:" + paddingBottom + ";";
         svg.setAttribute("style", 
                          "overflow: visible; " + 
                          pleft + pright + ptop + pbottom);
@@ -170,92 +185,134 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
         document.body.appendChild(parentsvg);
     }
 
-    this.add = function(child, reflow="static") {
-	var range = child.range();
-	switch (reflow) {	    
+    this.add = function(child, reflowx="static", reflowy=reflowx) {
+	var range = child.xrange();
+        var update = false;
+	switch (reflowx) {
 	case "static":
 	    // Do NOT change size or scale on viewport
 	    break;
 	case "rescale":
 	    // Change scale based on content, but NOT size
 	    // AND reduce scale if necessary
-	    range = childRange(range);
+	    range = childXRange(range);
             if (xscale[0] < xscale[1]) {
-                xscale = range.x;
+                xscale = range;
             } else {
-                xscale = [ range.x[1], range.x[0] ];
+                xscale = [ range[1], range[0] ];
             }
-            if (yscale[0] < yscale[1]) {
-                yscale = range.y
-            } else {
-                yscale = [ range.y[1], range.y[0] ];
-            }
-            for (var i = 0; i < children.length; i++) {
-                children[i].update(this);
-            }
+            update = true;
 	    break;
 	case "zoom":
 	    // Change scale based on content, but NOT size
 	    // BUT only expand scale (do not reduce)
-            if (range.x[0] < Math.min(xscale[0], xscale[1]) || 
-                range.x[1] > Math.max(xscale[0], xscale[1]) ||
-                range.y[0] < Math.min(yscale[0], yscale[1]) || 
-                range.y[1] > Math.max(yscale[0], yscale[1])) {
-		adjustScale(range);
-		for (var i = 0; i < children.length; i++) {
-                    children[i].update(this);
-		}
+            if (range[0] < Math.min(xscale[0], xscale[1]) || 
+                range[1] > Math.max(xscale[0], xscale[1])) {
+		adjustXScale(range);
+                update = true;
 	    }
 	    break;
 	case "resize":
 	    // Change scale AND size based on content
 	    // AND shrink if necessary
-	    var range = child.range();
-	    range = childRange(range);
-            adjustSize(range, true);
+	    range = childXRange(range);
+            adjustXSize(range, true);
             if (xscale[0] < xscale[1]) {
-                xscale = range.x;
+                xscale = range;
             } else {
-                xscale = [ range.x[1], range.x[0] ];
+                xscale = [ range[1], range[0] ];
             }
-            if (yscale[0] < yscale[1]) {
-                yscale = range.y
-            } else {
-                yscale = [ range.y[1], range.y[0] ];
-            }
-            for (var i = 0; i < children.length; i++) {
-                children[i].update(this);
-            }
+            update = true;
 	    break;
 	case "grow":
 	    // Change scale AND size based on content
 	    // BUT only grow (do not shrink)
-            if (range.x[0] < Math.min(xscale[0], xscale[1]) || 
-                range.x[1] > Math.max(xscale[0], xscale[1]) ||
-                range.y[0] < Math.min(yscale[0], yscale[1]) || 
-                range.y[1] > Math.max(yscale[0], yscale[1])) {
-                adjustSize(range);
-		adjustScale(range);
-		for (var i = 0; i < children.length; i++) {
-                    children[i].update(this);
-		}
+            if (range[0] < Math.min(xscale[0], xscale[1]) || 
+                range[1] > Math.max(xscale[0], xscale[1])) {
+                adjustXSize(range);
+		adjustXScale(range);
+                update = true;
 	    }
 	    break;
 	}
+	var range = child.yrange();
+	switch (reflowy) {	    
+	case "static":
+	    // Do NOT change size or scale on viewport
+	    break;
+	case "rescale":
+	    // Change scale based on content, but NOT size
+	    // AND reduce scale if necessary
+	    range = childYRange(range);
+            if (yscale[0] < yscale[1]) {
+                yscale = range
+            } else {
+                yscale = [ range[1], range[0] ];
+            }
+            update = true;
+	    break;
+	case "zoom":
+	    // Change scale based on content, but NOT size
+	    // BUT only expand scale (do not reduce)
+            if (range[0] < Math.min(yscale[0], yscale[1]) || 
+                range[1] > Math.max(yscale[0], yscale[1])) {
+		adjustYScale(range);
+                update = true;
+	    }
+	    break;
+	case "resize":
+	    // Change scale AND size based on content
+	    // AND shrink if necessary
+	    range = childYRange(range);
+            adjustYSize(range, true);
+            if (yscale[0] < yscale[1]) {
+                yscale = range
+            } else {
+                yscale = [ range[1], range[0] ];
+            }
+            update = true;
+	    break;
+	case "grow":
+	    // Change scale AND size based on content
+	    // BUT only grow (do not shrink)
+            if (range[0] < Math.min(yscale[0], yscale[1]) || 
+                range[1] > Math.max(yscale[0], yscale[1])) {
+                adjustYSize(range);
+		adjustYScale(range);
+                update = true;
+	    }
+	    break;
+	}
+        if (update) {
+            for (var i = 0; i < children.length; i++) {
+                children[i].update(this);
+            }
+        }
 
 	// Build and add new child
         child.build(this);
         svg.appendChild(child.svg());
         children.push(child);
 
-	if (reflow != "static") {
+        var bbox = svg.getBBox();
+        var updatePadding = false;
+	if (reflowx != "static") {
 	    // Adjust viewport margin for content outside scale range
-            var bbox = svg.getBBox();
-            if (bbox.x < 0 || (bbox.x + bbox.width) > w ||
-		bbox.y < 0 || (bbox.y + bbox.height) > h) {
-		adjustPadding(bbox);
+            if (bbox.x < 0 || (bbox.x + bbox.width) > w) {
+		adjustXPadding(bbox);
+                udpatePadding = true;
             }
 	}
+	if (reflowy != "static") {
+	    // Adjust viewport margin for content outside scale range
+            if (bbox.y < 0 || (bbox.y + bbox.height) > h) {
+		adjustYPadding(bbox);
+                updatePadding = true;
+            }
+	}
+        if (updatePadding) {
+            adjustPadding();
+        }
     }
 }
 
@@ -291,9 +348,12 @@ function points(x, y) {
         }
     }
     
-    this.range = function() {
-        return { x: [ Math.min(...x), Math.max(...x) ],
-                 y: [ Math.min(...y), Math.max(...y) ] };
+    this.xrange = function() {
+        return [ Math.min(...x), Math.max(...x) ];
+    }
+    
+    this.yrange = function() {
+        return [ Math.min(...y), Math.max(...y) ];
     }
     
     this.build = function(parent) {
@@ -346,9 +406,12 @@ function text(lab, x, y) {
         }
     }
     
-    this.range = function() {
-        return { x: [ Math.min(...x), Math.max(...x) ],
-                 y: [ Math.min(...y), Math.max(...y) ] };
+    this.xrange = function() {
+        return [ Math.min(...x), Math.max(...x) ];
+    }
+    
+    this.yrange = function() {
+        return [ Math.min(...y), Math.max(...y) ];
     }
     
     this.build = function(parent) {
