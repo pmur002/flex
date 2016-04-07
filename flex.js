@@ -158,8 +158,10 @@ function root(w, h, parent) {
 
 function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     var parentObj = null;
-    var w = w;
-    var h = h;
+    var xStr = String(x);
+    var yStr = String(y);
+    var wStr = String(w);
+    var hStr = String(h);
     var xscale = xscale;
     var yscale = yscale;
     var paddingLeft = 0;
@@ -234,8 +236,10 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
             newxrange = Math.max(range[1], xscale[0], xscale[1]) - 
                 Math.min(range[0], xscale[0], xscale[1]);
         }
-        w = w*newxrange/xrange;
-        svg.setAttribute("width", w);
+        var width = transformW(wStr, parentObj);
+        w = width*newxrange/xrange;
+        wStr = w + "px";
+        svg.setAttribute("width", wStr);
         outersvg.setAttribute("width", w + paddingLeft + paddingRight);
         foreignObject.setAttribute("width", w + paddingLeft + paddingRight);
     }
@@ -249,8 +253,10 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
             newyrange = Math.max(range[1], yscale[0], yscale[1]) - 
                 Math.min(range[0], yscale[0], yscale[1]);
         }
-        h = h*newyrange/yrange;
-        svg.setAttribute("height", h);
+        var height = transformH(hStr, parentObj);
+        h = height*newyrange/yrange;
+        hStr = h + "px";
+        svg.setAttribute("height", hStr);
         outersvg.setAttribute("height", h + paddingTop + paddingBottom);
         foreignObject.setAttribute("height", h + paddingTop + paddingBottom);
     }
@@ -260,7 +266,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
             paddingLeft = Math.abs(bbox.x);
         }
         if (bbox.x + bbox.width > w) {
-            paddingRight = (bbox.width + bbox.x - w);
+            paddingRight = (bbox.x + bbox.width - w);
         }
     }
 
@@ -269,7 +275,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
             paddingTop = Math.abs(bbox.y);
         }
         if (bbox.y + bbox.height > h) {
-            paddingBottom = (bbox.height + bbox.y - h);
+            paddingBottom = (bbox.y + bbox.height - h);
         }
     }
 
@@ -299,24 +305,24 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     }
 
     this.width = function() {
-        return transformW(w, parentObj);
+        return transformW(wStr, parentObj);
     }
 
     this.height = function() {
-        return transformH(h, parentObj);
+        return transformH(hStr, parentObj);
     }
 
     this.build = function(parent) {
-        var tx = transformX(x, parent);
-        var ty = transformY(y, parent);
-        var tw = transformW(w, parent);
-        var th = transformH(h, parent);
+        x = transformX(xStr, parent);
+        y = transformY(yStr, parent);
+        w = transformW(wStr, parent);
+        h = transformH(hStr, parent);
 
         outersvg = createSVG("svg");
-        outersvg.setAttribute("x", tx);
-        outersvg.setAttribute("y", ty);
-        outersvg.setAttribute("width", tw);
-        outersvg.setAttribute("height", th);
+        outersvg.setAttribute("x", x);
+        outersvg.setAttribute("y", y);
+        outersvg.setAttribute("width", w);
+        outersvg.setAttribute("height", h);
         // FIXME: this outer SVG overflow does not work on Firefox
         //        (but does work on Chrome)
         if (clip) {
@@ -330,10 +336,10 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         // Firefox needs width/height on <foreignObject/> 
         // (Chrome does not)
         foreignObject = createSVG("foreignObject");
-        foreignObject.setAttribute("x", tx);
-        foreignObject.setAttribute("y", ty);
-        foreignObject.setAttribute("width", tw);
-        foreignObject.setAttribute("height", th);
+        foreignObject.setAttribute("x", x);
+        foreignObject.setAttribute("y", y);
+        foreignObject.setAttribute("width", w);
+        foreignObject.setAttribute("height", h);
         outersvg.appendChild(foreignObject);
 
         var html = createHTML("html");
@@ -344,10 +350,10 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         html.appendChild(body);
 
         svg = createSVG("svg");
-        svg.setAttribute("x", tx);
-        svg.setAttribute("y", ty);
-        svg.setAttribute("width", tw);
-        svg.setAttribute("height", th);
+        svg.setAttribute("x", x);
+        svg.setAttribute("y", y);
+        svg.setAttribute("width", w);
+        svg.setAttribute("height", h);
         svg.setAttribute("overflow", "visible");
         body.appendChild(svg);
 
