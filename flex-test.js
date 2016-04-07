@@ -1,16 +1,4 @@
 
-// test xaxis
-
-vp = new viewport(0, 0, 100, 1, [0, 1], [1, 0]);
-vp.init();
-
-xa = new xaxis();
-vp.add(xa, "static", "resize");
-
-// Test reflow = static|resize|rescale|grow|zoom
-
-document.body.appendChild(document.createElement("p"));
-
 vp = new viewport(0, 0, 100, 100, [0, 1], [1, 0]);
 vp.init();
 
@@ -24,6 +12,9 @@ vp = new viewport(0, 0, 100, 100, [0,1], [1,0]);
 vp.init();
 
 vp = new viewport(0, 0, 100, 100, [0,1], [1,0]);
+vp.init();
+
+vp = new viewport(0, 0, 100, 1, [0, 1], [1, 0], false);
 vp.init();
 
 document.body.appendChild(document.createElement("p"));
@@ -52,6 +43,11 @@ vp = new viewport(0, 0, 100, 100, [0,1], [1,0]);
 vp.init();
 p = new points([.1, .2, .3], [.2, .1, .3]);
 vp.add(p, "zoom");
+
+vp = new viewport(0, 0, 100, 1, [0, 1], [1, 0], false);
+vp.init();
+xa = new xaxis();
+vp.add(xa, "static", "resize");
 
 document.body.appendChild(document.createElement("p"));
 

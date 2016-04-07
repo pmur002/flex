@@ -4,27 +4,69 @@ createSVG = function(elt) {
 }
 
 transformX = function(x, parent) {
-    var xs = parent.xscale();
-    if (xs[0] < xs[1]) {
-        return parent.width()*(x - xs[0])/(xs[1] - xs[0]);
+
+    var transScale = function(x, parent) {
+        var xs = parent.xscale();
+        if (xs[0] < xs[1]) {
+            return parent.width()*(x - xs[0])/(xs[1] - xs[0]);
+        } else {
+            return parent.width()*(1 - (x - xs[1])/(xs[0] - xs[1]));
+        }
+    }
+    
+    var transform = function(x) {
+        if (x.includes("pt")) {
+            return x.replace(/pt/, "");
+        } else if (x.includes("%")) {
+            var percent = Number(x.replace(/%/, ""));
+            return parent.width()*percent;
+        } else {
+            // Better be a number!!
+            return transScale(x, parent);
+        }
+    }
+    
+    if (typeof(x) === "string") {
+        return eval(x.replace(/[0-9]*[.]?[0-9]+(pt|%)?/g, transform));
     } else {
-        return parent.width()*(1 - (x - xs[1])/(xs[0] - xs[1]));
+        return transScale(x, parent);
     }
 }
 
 transformY = function(y, parent) {
-    var ys = parent.yscale();
-    if (ys[0] < ys[1]) {
-        return parent.height()*(y - ys[0])/(ys[1] - ys[0]);
+
+    var transScale = function(y, parent) {
+        var ys = parent.yscale();
+        if (ys[0] < ys[1]) {
+            return parent.height()*(y - ys[0])/(ys[1] - ys[0]);
+        } else {
+            return parent.height()*(1 - (y - ys[1])/(ys[0] - ys[1]));
+        }
+    }
+    
+    var transform = function(x) {
+        if (x.includes("pt")) {
+            return Number(x.replace(/pt/, ""));
+        } else if (x.includes("%")) {
+            var percent = Number(x.replace(/%/, ""));
+            return parent.height()*percent;
+        } else {
+            // Better be a number!!
+            return transScale(x, parent);
+        }
+    }
+    
+    if (typeof(y) === "string") {
+        return eval(y.replace(/[0-9]*[.]?[0-9]+(pt|%)?/g, transform));
     } else {
-        return parent.height()*(1 - (y - ys[1])/(ys[0] - ys[1]));
+        return transScale(y, parent);
     }
 }
 
 // A 'scale' can be [min,max] OR [max.min]
 // A 'range' is [min,max]
 
-function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
+function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     var w = w;
     var h = h;
     var xscale = xscale;
@@ -40,8 +82,15 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
     parentsvg.setAttribute("y", y);
     parentsvg.setAttribute("width", w);
     parentsvg.setAttribute("height", h);
+    // FIXME: this outer SVG overflow does not work on Firefox
+    //        (but does work on Chrome)
+    if (clip) {
+        parentsvg.setAttribute("overflow", "hidden");
+    } else {
+        parentsvg.setAttribute("overflow", "visible");
+    }
     parentsvg.setAttribute("style",
-		           "border: solid 1px; margin: 5px");
+		           "border: solid 1px #DDD; margin: 5px");
     
     // Firefox needs width/height on <foreignObject/> 
     // (Chrome does not)
@@ -64,7 +113,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
     svg.setAttribute("y", y);
     svg.setAttribute("width", w);
     svg.setAttribute("height", h);
-    svg.setAttribute("style", "overflow: visible");
+    svg.setAttribute("overflow", "visible");
     body.appendChild(svg);
 
     function childXRange(range) {
@@ -175,7 +224,6 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1]) {
         var ptop = "padding-top:" + paddingTop + ";";
         var pbottom = "padding-bottom:" + paddingBottom + ";";
         svg.setAttribute("style", 
-                         "overflow: visible; " + 
                          pleft + pright + ptop + pbottom);
         foreignObject.setAttribute("width", w + paddingLeft + paddingRight);
         foreignObject.setAttribute("height", h + paddingTop + paddingBottom);
@@ -438,25 +486,29 @@ function xaxis() {
         var xs = parent.xscale();
         var leftTick = Math.min(xs[0], xs[1]);
         var rightTick = Math.max(xs[0], xs[1]);
-        children.major.setAttribute("x1", transformX(leftTick, parent));
-        children.major.setAttribute("x2", transformX(rightTick, parent));
-        children.major.setAttribute("y1", 1);
-        children.major.setAttribute("y2", 1);
-        children.tick1.setAttribute("x1", transformX(leftTick, parent));
-        children.tick1.setAttribute("x2", transformX(leftTick, parent));
-        children.tick1.setAttribute("y1", 1);
-        children.tick1.setAttribute("y2", .9);
-        children.tick2.setAttribute("x1", transformX(rightTick, parent));
-        children.tick2.setAttribute("x2", transformX(rightTick, parent));
-        children.tick2.setAttribute("y1", 1);
-        children.tick2.setAttribute("y2", .9);
-        children.ticklab1.setAttribute("x", transformX(leftTick, parent));
-        children.ticklab1.setAttribute("y", 1);
+        var ltx = transformX(leftTick, parent);
+        var rtx = transformX(rightTick, parent);
+        var top = transformY(1, parent);
+        var bot = transformY("1 + 10pt", parent);
+        children.major.setAttribute("x1", ltx);
+        children.major.setAttribute("x2", rtx);
+        children.major.setAttribute("y1", top);
+        children.major.setAttribute("y2", top);
+        children.tick1.setAttribute("x1", ltx);
+        children.tick1.setAttribute("x2", ltx);
+        children.tick1.setAttribute("y1", top);
+        children.tick1.setAttribute("y2", bot);
+        children.tick2.setAttribute("x1", rtx);
+        children.tick2.setAttribute("x2", rtx);
+        children.tick2.setAttribute("y1", top);
+        children.tick2.setAttribute("y2", bot);
+        children.ticklab1.setAttribute("x", ltx);
+        children.ticklab1.setAttribute("y", bot);
 	var textNode = document.createTextNode(leftTick);
         children.ticklab1.removeChild(children.ticklab1.childNodes[0]);
         children.ticklab1.appendChild(textNode);
-        children.ticklab2.setAttribute("x", transformX(rightTick, parent));
-        children.ticklab2.setAttribute("y", 1);
+        children.ticklab2.setAttribute("x", rtx);
+        children.ticklab2.setAttribute("y", bot);
 	textNode = document.createTextNode(rightTick);
         children.ticklab2.removeChild(children.ticklab2.childNodes[0]);
         children.ticklab2.appendChild(textNode);
@@ -475,24 +527,27 @@ function xaxis() {
     this.build = function(parent) {
         svg = createSVG("g");
         var major = createSVG("line");
+        major.setAttribute("stroke", "black");
         svg.appendChild(major);
         children.major = major;
         var tick1 = createSVG("line");
+        tick1.setAttribute("stroke", "black");
         svg.appendChild(tick1);
         children.tick1 = tick1;
         var tick2 = createSVG("line");
+        tick2.setAttribute("stroke", "black");
         svg.appendChild(tick2);
         children.tick2 = tick2;
         var ticklab1 = createSVG("text");
 	ticklab1.setAttribute("text-anchor", "middle");
-	ticklab1.setAttribute("dominant-baseline", "text-after-edge");
+	ticklab1.setAttribute("dominant-baseline", "text-before-edge");
 	var textNode = document.createTextNode("");
         ticklab1.appendChild(textNode);
         svg.appendChild(ticklab1);
         children.ticklab1 = ticklab1;
         var ticklab2 = createSVG("text");
 	ticklab2.setAttribute("text-anchor", "middle");
-	ticklab2.setAttribute("dominant-baseline", "text-after-edge");
+	ticklab2.setAttribute("dominant-baseline", "text-before-edge");
 	var textNode = document.createTextNode("");
         ticklab2.appendChild(textNode);
         svg.appendChild(ticklab2);
