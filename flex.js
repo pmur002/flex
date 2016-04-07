@@ -1,7 +1,14 @@
 
+createHTML = function(elt) {
+    return document.createElement(elt);
+}
+
 createSVG = function(elt) {
     return document.createElementNS("http://www.w3.org/2000/svg", elt);
 }
+
+// A 'scale' can be [min,max] OR [max.min]
+// A 'range' is [min,max]
 
 transformX = function(x, parent) {
 
@@ -15,11 +22,11 @@ transformX = function(x, parent) {
     }
     
     var transform = function(x) {
-        if (x.includes("pt")) {
-            return x.replace(/pt/, "");
+        if (x.includes("px")) {
+            return x.replace(/px/, "");
         } else if (x.includes("%")) {
             var percent = Number(x.replace(/%/, ""));
-            return parent.width()*percent;
+            return parent.width()*percent/100;
         } else {
             // Better be a number!!
             return transScale(x, parent);
@@ -27,7 +34,7 @@ transformX = function(x, parent) {
     }
     
     if (typeof(x) === "string") {
-        return eval(x.replace(/[0-9]*[.]?[0-9]+(pt|%)?/g, transform));
+        return eval(x.replace(/[0-9]*[.]?[0-9]+(px|%)?/g, transform));
     } else {
         return transScale(x, parent);
     }
@@ -45,11 +52,11 @@ transformY = function(y, parent) {
     }
     
     var transform = function(x) {
-        if (x.includes("pt")) {
-            return Number(x.replace(/pt/, ""));
+        if (x.includes("px")) {
+            return Number(x.replace(/px/, ""));
         } else if (x.includes("%")) {
             var percent = Number(x.replace(/%/, ""));
-            return parent.height()*percent;
+            return parent.height()*percent/100;
         } else {
             // Better be a number!!
             return transScale(x, parent);
@@ -57,16 +64,100 @@ transformY = function(y, parent) {
     }
     
     if (typeof(y) === "string") {
-        return eval(y.replace(/[0-9]*[.]?[0-9]+(pt|%)?/g, transform));
+        return eval(y.replace(/[0-9]*[.]?[0-9]+(px|%)?/g, transform));
     } else {
         return transScale(y, parent);
     }
 }
 
-// A 'scale' can be [min,max] OR [max.min]
-// A 'range' is [min,max]
+transformW = function(w, parent) {
+
+    var transScale = function(w, parent) {
+        var xs = parent.xscale();
+        return parent.width()*w/(xs[1] - xs[0]);
+    }
+    
+    var transform = function(x) {
+        if (x.includes("px")) {
+            return x.replace(/px/, "");
+        } else if (x.includes("%")) {
+            var percent = Number(x.replace(/%/, ""));
+            return parent.width()*percent/100;
+        } else {
+            // Better be a number!!
+            return transScale(x, parent);
+        }
+    }
+    
+    if (typeof(w) === "string") {
+        return eval(w.replace(/[0-9]*[.]?[0-9]+(px|%)?/g, transform));
+    } else {
+        return transScale(w, parent);
+    }
+}
+
+transformH = function(h, parent) {
+
+    var transScale = function(h, parent) {
+        var ys = parent.yscale();
+        return parent.height()*h/(ys[1] - ys[0]);
+    }
+    
+    var transform = function(x) {
+        if (x.includes("px")) {
+            return x.replace(/px/, "");
+        } else if (x.includes("%")) {
+            var percent = Number(x.replace(/%/, ""));
+            return parent.height()*percent/100;
+        } else {
+            // Better be a number!!
+            return transScale(x, parent);
+        }
+    }
+    
+    if (typeof(h) === "string") {
+        return eval(h.replace(/[0-9]*[.]?[0-9]+(px|%)?/g, transform));
+    } else {
+        return transScale(h, parent);
+    }
+}
+
+function root(w, h, parent) {
+    var div;
+    div = createHTML("div");
+    div.setAttribute("id", "root");
+    div.setAttribute("style", 
+                     "width: " + w + "; height: " + h);
+    var parentElt = document.querySelector(parent);
+    parentElt.appendChild(div);
+
+    this.xscale = function() {
+        return [0, 1];
+    }
+
+    this.yscale = function() {
+        return [0, 1];
+    }
+
+    this.width = function() {
+        return div.scrollWidth;
+    } 
+
+    this.height = function() {
+        return div.scrollHeight;
+    }
+    
+    this.setContent = function(child) {
+        child.build(this);
+        while (div.firstChild) {
+            div.removeChild(div.firstChild);
+        }
+        div.appendChild(child.content());
+    }
+}
 
 function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
+    var parentObj = null;
     var w = w;
     var h = h;
     var xscale = xscale;
@@ -75,46 +166,10 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     var paddingRight = 0;
     var paddingTop = 0;
     var paddingBottom = 0;
+    var outersvg = null;
+    var foreignObject = null;
+    var svg = null;
     var children = [];
-
-    var parentsvg = createSVG("svg");
-    parentsvg.setAttribute("x", x);
-    parentsvg.setAttribute("y", y);
-    parentsvg.setAttribute("width", w);
-    parentsvg.setAttribute("height", h);
-    // FIXME: this outer SVG overflow does not work on Firefox
-    //        (but does work on Chrome)
-    if (clip) {
-        parentsvg.setAttribute("overflow", "hidden");
-    } else {
-        parentsvg.setAttribute("overflow", "visible");
-    }
-    parentsvg.setAttribute("style",
-		           "border: solid 1px #DDD; margin: 5px");
-    
-    // Firefox needs width/height on <foreignObject/> 
-    // (Chrome does not)
-    var foreignObject = createSVG("foreignObject");
-    foreignObject.setAttribute("x", x);
-    foreignObject.setAttribute("y", y);
-    foreignObject.setAttribute("width", w);
-    foreignObject.setAttribute("height", h);
-    parentsvg.appendChild(foreignObject);
-
-    var html = document.createElement("html");
-    foreignObject.appendChild(html);
-
-    var body = document.createElement("body");
-    body.setAttribute("style", "margin: 0");
-    html.appendChild(body);
-
-    var svg = createSVG("svg");
-    svg.setAttribute("x", x);
-    svg.setAttribute("y", y);
-    svg.setAttribute("width", w);
-    svg.setAttribute("height", h);
-    svg.setAttribute("overflow", "visible");
-    body.appendChild(svg);
 
     function childXRange(range) {
 	for (var i = 0; i < children.length; i++) {
@@ -181,7 +236,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         }
         w = w*newxrange/xrange;
         svg.setAttribute("width", w);
-        parentsvg.setAttribute("width", w + paddingLeft + paddingRight);
+        outersvg.setAttribute("width", w + paddingLeft + paddingRight);
         foreignObject.setAttribute("width", w + paddingLeft + paddingRight);
     }
 
@@ -196,7 +251,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         }
         h = h*newyrange/yrange;
         svg.setAttribute("height", h);
-        parentsvg.setAttribute("height", h + paddingTop + paddingBottom);
+        outersvg.setAttribute("height", h + paddingTop + paddingBottom);
         foreignObject.setAttribute("height", h + paddingTop + paddingBottom);
     }
 
@@ -227,8 +282,12 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
                          pleft + pright + ptop + pbottom);
         foreignObject.setAttribute("width", w + paddingLeft + paddingRight);
         foreignObject.setAttribute("height", h + paddingTop + paddingBottom);
-        parentsvg.setAttribute("width", w + paddingLeft + paddingRight);
-        parentsvg.setAttribute("height", h + paddingTop + paddingBottom);
+        outersvg.setAttribute("width", w + paddingLeft + paddingRight);
+        outersvg.setAttribute("height", h + paddingTop + paddingBottom);
+    }
+
+    this.content = function() {
+        return outersvg;
     }
 
     this.xscale = function() {
@@ -240,15 +299,59 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     }
 
     this.width = function() {
-        return w;
+        return transformW(w, parentObj);
     }
 
     this.height = function() {
-        return h;
+        return transformH(h, parentObj);
     }
 
-    this.init = function() {
-        document.body.appendChild(parentsvg);
+    this.build = function(parent) {
+        var tx = transformX(x, parent);
+        var ty = transformY(y, parent);
+        var tw = transformW(w, parent);
+        var th = transformH(h, parent);
+
+        outersvg = createSVG("svg");
+        outersvg.setAttribute("x", tx);
+        outersvg.setAttribute("y", ty);
+        outersvg.setAttribute("width", tw);
+        outersvg.setAttribute("height", th);
+        // FIXME: this outer SVG overflow does not work on Firefox
+        //        (but does work on Chrome)
+        if (clip) {
+            outersvg.setAttribute("overflow", "hidden");
+        } else {
+            outersvg.setAttribute("overflow", "visible");
+        }
+        outersvg.setAttribute("style",
+		               "border: solid 1px #DDD; margin: 5px");
+    
+        // Firefox needs width/height on <foreignObject/> 
+        // (Chrome does not)
+        foreignObject = createSVG("foreignObject");
+        foreignObject.setAttribute("x", tx);
+        foreignObject.setAttribute("y", ty);
+        foreignObject.setAttribute("width", tw);
+        foreignObject.setAttribute("height", th);
+        outersvg.appendChild(foreignObject);
+
+        var html = createHTML("html");
+        foreignObject.appendChild(html);
+
+        var body = createHTML("body");
+        body.setAttribute("style", "margin: 0");
+        html.appendChild(body);
+
+        svg = createSVG("svg");
+        svg.setAttribute("x", tx);
+        svg.setAttribute("y", ty);
+        svg.setAttribute("width", tw);
+        svg.setAttribute("height", th);
+        svg.setAttribute("overflow", "visible");
+        body.appendChild(svg);
+
+        parentObj = parent;
     }
 
     this.add = function(child, reflowx="static", reflowy=reflowx) {
@@ -357,7 +460,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 
 	// Build and add new child
         child.build(this);
-        svg.appendChild(child.svg());
+        svg.appendChild(child.content());
         children.push(child);
 
         var bbox = svg.getBBox();
@@ -389,7 +492,7 @@ function points(x, y) {
     var svg = null;
     var children = [];
 
-    this.svg = function() {
+    this.content = function() {
         return svg;
     }
 
@@ -431,7 +534,7 @@ function text(lab, x, y) {
     var svg = null;
     var children = [];
 
-    this.svg = function() {
+    this.content = function() {
         return svg;
     }
 
@@ -477,7 +580,7 @@ function xaxis() {
     var svg = null;
     var children = {};
 
-    this.svg = function() {
+    this.content = function() {
         return svg;
     }
 
@@ -489,7 +592,7 @@ function xaxis() {
         var ltx = transformX(leftTick, parent);
         var rtx = transformX(rightTick, parent);
         var top = transformY(1, parent);
-        var bot = transformY("1 + 10pt", parent);
+        var bot = transformY("1 + 10px", parent);
         children.major.setAttribute("x1", ltx);
         children.major.setAttribute("x2", rtx);
         children.major.setAttribute("y1", top);
