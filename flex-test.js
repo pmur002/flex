@@ -40,7 +40,7 @@ vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
 r.setContent(vp);
 
 r = new root("auto", "auto", "div#row1");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0], false);
+vp = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
 r.setContent(vp);
 
 document.body.appendChild(document.createElement("p"));
@@ -80,7 +80,7 @@ p = new points([.1, .2, .3], [.2, .1, .3]);
 vp.add(p, "zoom");
 
 r = new root("auto", "auto", "div#row2");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0], false);
+vp = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
 r.setContent(vp);
 xa = new xaxis();
 vp.add(xa, "static", "resize");
