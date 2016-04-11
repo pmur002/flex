@@ -173,110 +173,147 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     var svg = null;
     var children = [];
 
-    function childXRange(range) {
-	for (var i = 0; i < children.length; i++) {
-	    crange = children[i].xrange(this);
+    function childrenXrange(parent) {
+        var crange;
+        var range = children[0].xrange(parent);
+	for (var i = 1; i < children.length; i++) {
+	    crange = children[i].xrange(parent);
 	    range = [ Math.min(range[0], crange[0]),
 		       Math.max(range[1], crange[1]) ];
 	}
 	return range;
     }
     
-    function childYRange(range) {
-	for (var i = 0; i < children.length; i++) {
-	    crange = children[i].yrange(this);
+    function childrenYrange(parent) {
+        var crange;
+        var range = children[0].yrange(parent);
+	for (var i = 1; i < children.length; i++) {
+	    crange = children[i].yrange(parent);
 	    range = [ Math.min(range[0], crange[0]),
 		      Math.max(range[1], crange[1]) ];
 	}
 	return range;
     }
     
-    function adjustXScale(range) {
-        if (xscale[0] < xscale[1]) {
-            if (range[0] < xscale[0]) {
-                xscale[0] = range[0]
-            }
-            if (range[1] > xscale[1]) {
-                xscale[1] = range[1]
-            }
+    function adjustScale(oldscale, range) {
+        var newscale = [];
+        if (oldscale[0] < oldscale[1]) {
+            newscale[0] = range[0]
+            newscale[1] = range[1]
         } else {
-            if (range[0] < xscale[1]) {
-                xscale[1] = range[0]
-            }
-            if (range[1] > xscale[0]) {
-                xscale[0] = range[1]
-            }
+            newscale[1] = range[0]
+            newscale[0] = range[1]
+        }
+        return newscale;
+    }
+
+    function adjustLeft(width, scale, newscale) {
+        if (scale[0] < scale[1]) {
+            return (newscale[0] - scale[0])/(scale[1] - scale[0])*width;
+        } else {
+            return (scale[0] - newscale[0])/(scale[0] - scale[1])*width;
         }
     }
-    
-    function adjustYScale(range) {
-        if (yscale[0] < yscale[1]) {
-            if (range[0] < yscale[0]) {
-                yscale[0] = range[0]
-            }
-            if (range[1] > yscale[1]) {
-                yscale[1] = range[1]
-            }
+
+    function adjustRight(width, scale, newscale) {
+        if (scale[0] < scale[1]) {
+            return (newscale[1] - scale[0])/(scale[1] - scale[0])*width;
         } else {
-            if (range[0] < yscale[1]) {
-                yscale[1] = range[0]
-            }
-            if (range[1] > yscale[0]) {
-                yscale[0] = range[1]
-            }
+            return (scale[0] - newscale[1])/(scale[0] - scale[1])*width;
         }
     }
-    
-    function adjustXSize(range, force=false) {
-        var xrange = Math.abs(xscale[1] - xscale[0]);
-        var newxrange;
-        if (force) {
-            newxrange = range[1] - range[0];
-        } else { 
-            newxrange = Math.max(range[1], xscale[0], xscale[1]) - 
-                Math.min(range[0], xscale[0], xscale[1]);
+
+    function adjustTop(height, scale, newscale) {
+        if (scale[0] < scale[1]) {
+            return (newscale[0] - scale[0])/(scale[1] - scale[0])*height;
+        } else {
+            return (scale[0] - newscale[0])/(scale[0] - scale[1])*height;
         }
-        var width = transformW(wStr, parentObj);
-        w = width*newxrange/xrange;
+    }
+
+    function adjustBottom(height, scale, newscale) {
+        if (scale[0] < scale[1]) {
+            return (newscale[1] - scale[0])/(scale[1] - scale[0])*height;
+        } else {
+            return (scale[0] - newscale[1])/(scale[0] - scale[1])*height;
+        }
+    }
+
+    function adjustXPadding(left, right, bbox) {
+        return { left: left - bbox.x, right: bbox.x + bbox.width - right };
+    }
+    
+    function adjustYPadding(top, bottom, bbox) {
+        return { top: top - bbox.y, bottom: bbox.y + bbox.height - bottom };
+    }
+    
+    function adjustWidth(width, padding) {
+        w = width;
+        paddingLeft = padding.left;
+        paddingRight = padding.right;
         wStr = w + "px";
         svg.setAttribute("width", wStr);
         outersvg.setAttribute("width", w + paddingLeft + paddingRight);
         foreignObject.setAttribute("width", w + paddingLeft + paddingRight);
     }
 
-    function adjustYSize(range, force=false) {
-        var yrange = Math.abs(yscale[1] - yscale[0]);
-        var newyrange;
-        if (force) {
-            newyrange = range[1] - range[0];
-        } else { 
-            newyrange = Math.max(range[1], yscale[0], yscale[1]) - 
-                Math.min(range[0], yscale[0], yscale[1]);
-        }
-        var height = transformH(hStr, parentObj);
-        h = height*newyrange/yrange;
+    function adjustHeight(height, padding) {
+        h = height;
+        paddingTop = padding.top;
+        paddingBottom = padding.bottom;
         hStr = h + "px";
         svg.setAttribute("height", hStr);
         outersvg.setAttribute("height", h + paddingTop + paddingBottom);
         foreignObject.setAttribute("height", h + paddingTop + paddingBottom);
     }
 
-    function adjustXPadding(bbox) {
-        if (bbox.x < 0) {
-            paddingLeft = Math.abs(bbox.x);
-        }
-        if (bbox.x + bbox.width > w) {
-            paddingRight = (bbox.x + bbox.width - w);
-        }
+    function rescaleX(parent, bbox) {
+        // Calculate new scale and new size and new padding
+        var crange = childrenXrange(parent);
+        var newXscale = adjustScale(xscale, crange);
+        var newLeft = adjustLeft(w, xscale, newXscale);
+        var newRight = adjustRight(w, xscale, newXscale);
+        var newPadding = adjustXPadding(newLeft, newRight, bbox);
+        var newWidth = (w + paddingLeft + paddingRight) - 
+                       (newPadding.left + newPadding.right);
+        adjustWidth(newWidth, newPadding);
+        xscale = newXscale;
     }
 
-    function adjustYPadding(bbox) {
-        if (bbox.y < 0 ) {
-            paddingTop = Math.abs(bbox.y);
-        }
-        if (bbox.y + bbox.height > h) {
-            paddingBottom = (bbox.y + bbox.height - h);
-        }
+    function rescaleY(parent, bbox) {
+        // Calculate new scale and new size and new padding
+        var crange = childrenYrange(parent);
+        var newYscale = adjustScale(yscale, crange);
+        var newTop = adjustTop(h, yscale, newYscale);
+        var newBottom = adjustBottom(h, yscale, newYscale);
+        var newPadding = adjustYPadding(newTop, newBottom, bbox);
+        var newHeight = (h + paddingTop + paddingBottom) - 
+                        (newPadding.top + newPadding.bottom);
+        adjustHeight(newHeight, newPadding);
+        yscale = newYscale;
+    }
+
+    function resizeX(parent, bbox) {
+        var crange = childrenXrange(parent);
+        var newXscale = adjustScale(xscale, crange);
+        var newLeft = adjustLeft(w, xscale, newXscale);
+        var newRight = adjustRight(w, xscale, newXscale);
+        var newPadding = adjustXPadding(newLeft, newRight, bbox);
+        var newWidth = newRight - newLeft;
+        adjustWidth(newWidth, newPadding);
+        xscale = newXscale;
+    }
+    
+    function resizeY(parent, bbox) {
+        // Calculate new scale and new size and new padding
+        var crange = childrenYrange(parent);
+        var newYscale = adjustScale(yscale, crange);
+        var newTop = adjustTop(h, yscale, newYscale);
+        var newBottom = adjustBottom(h, yscale, newYscale);
+        var newPadding = adjustYPadding(newTop, newBottom, bbox);
+        var newHeight = newBottom - newTop;
+        adjustHeight(newHeight, newPadding);
+        yscale = newYscale;
     }
 
     function adjustPadding() {
@@ -286,10 +323,6 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var pbottom = "padding-bottom:" + paddingBottom + ";";
         svg.setAttribute("style", 
                          pleft + pright + ptop + pbottom);
-        foreignObject.setAttribute("width", w + paddingLeft + paddingRight);
-        foreignObject.setAttribute("height", h + paddingTop + paddingBottom);
-        outersvg.setAttribute("width", w + paddingLeft + paddingRight);
-        outersvg.setAttribute("height", h + paddingTop + paddingBottom);
     }
 
     this.content = function() {
@@ -361,8 +394,15 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     }
 
     this.add = function(child, reflowx="static", reflowy=reflowx) {
-	var range = child.xrange(this);
+	// Build and add new child (to existing scale and size)
+        child.build(this);
+        svg.appendChild(child.content());
+        children.push(child);
+
+        var bbox = svg.getBBox();
+        var range = child.xrange(this);
         var update = false;
+
 	switch (reflowx) {
 	case "static":
 	    // Do NOT change size or scale on viewport
@@ -370,12 +410,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	case "rescale":
 	    // Change scale based on content, but NOT size
 	    // AND reduce scale if necessary
-	    range = childXRange(range);
-            if (xscale[0] < xscale[1]) {
-                xscale = range;
-            } else {
-                xscale = [ range[1], range[0] ];
-            }
+            rescaleX(this, bbox);
             update = true;
 	    break;
 	case "zoom":
@@ -383,20 +418,14 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	    // BUT only expand scale (do not reduce)
             if (range[0] < Math.min(xscale[0], xscale[1]) || 
                 range[1] > Math.max(xscale[0], xscale[1])) {
-		adjustXScale(range);
+	        rescaleX(this, bbox);
                 update = true;
 	    }
 	    break;
 	case "resize":
 	    // Change scale AND size based on content
 	    // AND shrink if necessary
-	    range = childXRange(range);
-            adjustXSize(range, true);
-            if (xscale[0] < xscale[1]) {
-                xscale = range;
-            } else {
-                xscale = [ range[1], range[0] ];
-            }
+            resizeX(this, bbox);
             update = true;
 	    break;
 	case "grow":
@@ -404,12 +433,12 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	    // BUT only grow (do not shrink)
             if (range[0] < Math.min(xscale[0], xscale[1]) || 
                 range[1] > Math.max(xscale[0], xscale[1])) {
-                adjustXSize(range);
-		adjustXScale(range);
+                resizeX(this, bbox);
                 update = true;
 	    }
 	    break;
 	}
+
 	var range = child.yrange(this);
 	switch (reflowy) {	    
 	case "static":
@@ -418,12 +447,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	case "rescale":
 	    // Change scale based on content, but NOT size
 	    // AND reduce scale if necessary
-	    range = childYRange(range);
-            if (yscale[0] < yscale[1]) {
-                yscale = range
-            } else {
-                yscale = [ range[1], range[0] ];
-            }
+            rescaleY(this, bbox);
             update = true;
 	    break;
 	case "zoom":
@@ -431,20 +455,14 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	    // BUT only expand scale (do not reduce)
             if (range[0] < Math.min(yscale[0], yscale[1]) || 
                 range[1] > Math.max(yscale[0], yscale[1])) {
-		adjustYScale(range);
+                rescaleY(this, bbox);
                 update = true;
 	    }
 	    break;
 	case "resize":
 	    // Change scale AND size based on content
 	    // AND shrink if necessary
-	    range = childYRange(range);
-            adjustYSize(range, true);
-            if (yscale[0] < yscale[1]) {
-                yscale = range
-            } else {
-                yscale = [ range[1], range[0] ];
-            }
+            resizeY(this, bbox);
             update = true;
 	    break;
 	case "grow":
@@ -452,40 +470,18 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	    // BUT only grow (do not shrink)
             if (range[0] < Math.min(yscale[0], yscale[1]) || 
                 range[1] > Math.max(yscale[0], yscale[1])) {
-                adjustYSize(range);
-		adjustYScale(range);
+                resizeY(this, bbox);
                 update = true;
 	    }
 	    break;
 	}
+
         if (update) {
+            // Update all child positions
             for (var i = 0; i < children.length; i++) {
                 children[i].update(this);
             }
-        }
-
-	// Build and add new child
-        child.build(this);
-        svg.appendChild(child.content());
-        children.push(child);
-
-        var bbox = svg.getBBox();
-        var updatePadding = false;
-	if (reflowx != "static") {
-	    // Adjust viewport margin for content outside scale range
-            if (bbox.x < 0 || (bbox.x + bbox.width) > w) {
-		adjustXPadding(bbox);
-                udpatePadding = true;
-            }
-	}
-	if (reflowy != "static") {
-	    // Adjust viewport margin for content outside scale range
-            if (bbox.y < 0 || (bbox.y + bbox.height) > h) {
-		adjustYPadding(bbox);
-                updatePadding = true;
-            }
-	}
-        if (updatePadding) {
+            // Update padding on inner SVG
             adjustPadding();
         }
     }
