@@ -400,7 +400,6 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         children.push(child);
 
         var bbox = svg.getBBox();
-        var range = child.xrange(this);
         var update = false;
 
 	switch (reflowx) {
@@ -416,8 +415,8 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	case "zoom":
 	    // Change scale based on content, but NOT size
 	    // BUT only expand scale (do not reduce)
-            if (range[0] < Math.min(xscale[0], xscale[1]) || 
-                range[1] > Math.max(xscale[0], xscale[1])) {
+            if (bbox.x < -paddingLeft || 
+                (bbox.x + bbox.width) > (w + paddingRight)) {
 	        rescaleX(this, bbox);
                 update = true;
 	    }
@@ -431,8 +430,8 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	case "grow":
 	    // Change scale AND size based on content
 	    // BUT only grow (do not shrink)
-            if (range[0] < Math.min(xscale[0], xscale[1]) || 
-                range[1] > Math.max(xscale[0], xscale[1])) {
+            if (bbox.x < -paddingLeft || 
+                (bbox.x + bbox.width) > (w + paddingRight)) {
                 resizeX(this, bbox);
                 update = true;
 	    }
@@ -453,8 +452,8 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	case "zoom":
 	    // Change scale based on content, but NOT size
 	    // BUT only expand scale (do not reduce)
-            if (range[0] < Math.min(yscale[0], yscale[1]) || 
-                range[1] > Math.max(yscale[0], yscale[1])) {
+            if (bbox.y < -paddingTop || 
+                (bbox.y + bbox.height) > (h + paddingBottom)) {
                 rescaleY(this, bbox);
                 update = true;
 	    }
@@ -468,8 +467,8 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	case "grow":
 	    // Change scale AND size based on content
 	    // BUT only grow (do not shrink)
-            if (range[0] < Math.min(yscale[0], yscale[1]) || 
-                range[1] > Math.max(yscale[0], yscale[1])) {
+            if (bbox.y < -paddingTop || 
+                (bbox.y + bbox.height) > (h + paddingBottom)) {
                 resizeY(this, bbox);
                 update = true;
 	    }
