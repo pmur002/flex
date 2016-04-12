@@ -4,8 +4,8 @@ vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
 r.setContent(vp);
 p = new points([.1, .2, .3], [.2, .1, .3]);
 vp.add(p);
-p = new points(["100% - 5px"], ["100% - 5px"]);
-vp.add(p);
+t = new text(["test"], ["100% - 20px"], ["100% - 10px"]);
+vp.add(t);
 
 document.body.appendChild(document.createElement("p"));
 

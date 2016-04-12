@@ -105,8 +105,28 @@ function points(x, y) {
 
 function text(lab, x, y) {
     // assume lab, x and y same length
+    var n = x.length;
+    var xStr = [];
+    var yStr = [];
+    var numX = [];
+    var numY = [];
     var svg = null;
     var children = [];
+
+    for (var i = 0; i < n; i++) {
+        if (typeof(x[i]) == "string") {
+            xStr[i] = x[i];
+            numX[i] = false;
+        } else {
+            numX[i] = true;
+        }
+        if (typeof(y[i]) == "string") {
+            yStr[i] = y[i];
+            numY[i] = false;
+        } else {
+            numY[i] = true;
+        }
+    }
 
     this.content = function() {
         return svg;
