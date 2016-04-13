@@ -1,192 +1,296 @@
 
-r = new root("50%", "100px", "body");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p);
-t = new text(["test"], ["100% - 20px"], ["100% - 10px"]);
-vp.add(t);
+clearTest = function() {
+    var div = document.getElementById("test");
+    while (div.firstChild) {
+        div.removeChild(div.firstChild);
+    }
+}
 
-document.body.appendChild(document.createElement("p"));
+syncTest = function() {
 
-r = new root("50%", "100px", "body");
-vp = new viewport("0px", "0px", "50%", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p);
+    clearTest();
 
-document.body.appendChild(document.createElement("p"));
-div = document.createElement("div")
-div.setAttribute("style", "display: flex; flex-direction: row");
-div.setAttribute("id", "row1");
-document.body.appendChild(div);
+    var testdiv = document.getElementById("test");
 
-r = new root("auto", "auto", "div#row1");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
+    r = new root("50%", "auto", "div#test");
+    c = new container("column");
+    r.setContent(c);
+    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    c.add(vp1);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp1.add(p);
+    vp2 = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
+    c.add(vp2);
+    xa = new xaxis();
+    vp2.add(xa, "static", "resize");
+    vp1.syncTo(vp2, "x");
+    
+    testdiv.appendChild(document.createElement("p"));
+    
+    r = new root("50%", "auto", "div#test");
+    c = new container("column");
+    r.setContent(c);
+    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    c.add(vp1);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp1.add(p);
+    vp2 = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
+    c.add(vp2);
+    xa = new xaxis();
+    vp2.add(xa, "static", "resize");
+    vp1.syncTo(vp2, "x");
+    p = new points([1.5], [1.5]);
+    vp1.add(p, "resize");
+    
+    testdiv.appendChild(document.createElement("p"));
+    
+    r = new root("50%", "auto", "div#test");
+    c = new container("column");
+    r.setContent(c);
+    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    c.add(vp1);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp1.add(p);
+    vp2 = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
+    c.add(vp2);
+    xa = new xaxis();
+    vp2.add(xa, "static", "resize");
+    vp1.syncTo(vp2, "x");
+    p = new points([1.5], [1.5]);
+    vp1.add(p, "rescale");
 
-r = new root("auto", "auto", "div#row1");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
+    testdiv.appendChild(document.createElement("p"));
+    
+    r = new root("50%", "auto", "div#test");
+    c = new container("row");
+    r.setContent(c);
+    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    c.add(vp1);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp1.add(p);
+    vp2 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    c.add(vp2);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp2.add(p);
+    vp1.syncTo(vp2, "all");
+    vp2.syncTo(vp1, "all");
+    p = new points([1.5], [1.5]);
+    vp1.add(p, "resize");
 
-r = new root("auto", "auto", "div#row1");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
+    testdiv.appendChild(document.createElement("p"));
+    
+    r = new root("50%", "auto", "div#test");
+    c = new container("row");
+    r.setContent(c);
+    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    c.add(vp1);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp1.add(p);
+    vp2 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    c.add(vp2);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp2.add(p);
+    vp1.syncTo(vp2, "all");
+    vp2.syncTo(vp1, "all");
+    p = new points([1.5], [1.5]);
+    vp1.add(p, "resize");
+    t = new text(["rescale"], [0], [0]);
+    vp2.add(t, "rescale");
+}
 
-r = new root("auto", "auto", "div#row1");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
+basicTest = function() {
 
-r = new root("auto", "auto", "div#row1");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
+    clearTest();
 
-r = new root("auto", "auto", "div#row1");
-vp = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
-r.setContent(vp);
+    var testdiv = document.getElementById("test");
 
-document.body.appendChild(document.createElement("p"));
-div = document.createElement("div")
-div.setAttribute("style", "display: flex; flex-direction: row");
-div.setAttribute("id", "row2");
-document.body.appendChild(div);
-
-r = new root("auto", "auto", "div#row2");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p);
-
-r = new root("auto", "auto", "div#row2");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p, "resize");
-
-r = new root("auto", "auto", "div#row2");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p, "rescale");
-
-r = new root("auto", "auto", "div#row2");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p, "grow");
-
-r = new root("auto", "auto", "div#row2");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p, "zoom");
-
-r = new root("auto", "auto", "div#row2");
-vp = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
-r.setContent(vp);
-xa = new xaxis();
-vp.add(xa, "static", "resize");
-
-document.body.appendChild(document.createElement("p"));
-div = document.createElement("div")
-div.setAttribute("style", "display: flex; flex-direction: row");
-div.setAttribute("id", "row3");
-document.body.appendChild(div);
-
-r = new root("auto", "auto", "div#row3");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p);
-p = new points([1.5], [1.5]);
-vp.add(p);
-
-r = new root("auto", "auto", "div#row3");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p, "resize");
-p = new points([1.5], [1.5]);
-vp.add(p, "resize");
-
-r = new root("auto", "auto", "div#row3");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p, "rescale");
-p = new points([1.5], [1.5]);
-vp.add(p, "rescale");
-
-r = new root("auto", "auto", "div#row3");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p, "grow");
-p = new points([1.5], [1.5]);
-vp.add(p, "grow");
-
-r = new root("auto", "auto", "div#row3");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p, "zoom");
-p = new points([1.5], [1.5]);
-vp.add(p, "zoom");
-
-document.body.appendChild(document.createElement("p"));
-div = document.createElement("div")
-div.setAttribute("style", "display: flex; flex-direction: row");
-div.setAttribute("id", "row4");
-document.body.appendChild(div);
-
-r = new root("auto", "auto", "div#row4");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p);
-p = new points([1.5], [1.5]);
-vp.add(p);
-t = new text(["static"], [0], [0]);
-vp.add(t);
-
-r = new root("auto", "auto", "div#row4");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p, "resize");
-p = new points([1.5], [1.5]);
-vp.add(p, "resize");
-t = new text(["resize"], [0], [0]);
-vp.add(t, "resize");
-
-r = new root("auto", "auto", "div#row4");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p, "rescale");
-p = new points([1.5], [1.5]);
-vp.add(p, "rescale");
-t = new text(["rescale"], [0], [0]);
-vp.add(t, "rescale");
-
-r = new root("auto", "auto", "div#row4");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p, "grow");
-p = new points([1.5], [1.5]);
-vp.add(p, "grow");
-t = new text(["grow"], [0], [0]);
-vp.add(t, "grow");
-
-r = new root("auto", "auto", "div#row4");
-vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-r.setContent(vp);
-p = new points([.1, .2, .3], [.2, .1, .3]);
-vp.add(p, "zoom");
-p = new points([1.5], [1.5]);
-vp.add(p, "zoom");
-t = new text(["zoom"], [0], [0]);
-vp.add(t, "zoom");
-
-
+    r = new root("50%", "100px", "div#test");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p);
+    t = new text(["test"], ["100% - 20px"], ["100% - 10px"]);
+    vp.add(t);
+    
+    testdiv.appendChild(document.createElement("p"));
+    
+    r = new root("50%", "100px", "div#test");
+    vp = new viewport("0px", "0px", "50%", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p);
+    
+    testdiv.appendChild(document.createElement("p"));
+    div = document.createElement("div")
+    div.setAttribute("style", "display: flex; flex-direction: row");
+    div.setAttribute("id", "row1");
+    testdiv.appendChild(div);
+    
+    r = new root("auto", "auto", "div#row1");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    
+    r = new root("auto", "auto", "div#row1");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    
+    r = new root("auto", "auto", "div#row1");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    
+    r = new root("auto", "auto", "div#row1");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    
+    r = new root("auto", "auto", "div#row1");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    
+    r = new root("auto", "auto", "div#row1");
+    vp = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
+    r.setContent(vp);
+    
+    testdiv.appendChild(document.createElement("p"));
+    div = document.createElement("div")
+    div.setAttribute("style", "display: flex; flex-direction: row");
+    div.setAttribute("id", "row2");
+    testdiv.appendChild(div);
+    
+    r = new root("auto", "auto", "div#row2");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p);
+    
+    r = new root("auto", "auto", "div#row2");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p, "resize");
+    
+    r = new root("auto", "auto", "div#row2");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p, "rescale");
+    
+    r = new root("auto", "auto", "div#row2");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p, "grow");
+    
+    r = new root("auto", "auto", "div#row2");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p, "zoom");
+    
+    r = new root("auto", "auto", "div#row2");
+    vp = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
+    r.setContent(vp);
+    xa = new xaxis();
+    vp.add(xa, "static", "resize");
+    
+    testdiv.appendChild(document.createElement("p"));
+    div = document.createElement("div")
+    div.setAttribute("style", "display: flex; flex-direction: row");
+    div.setAttribute("id", "row3");
+    testdiv.appendChild(div);
+    
+    r = new root("auto", "auto", "div#row3");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p);
+    p = new points([1.5], [1.5]);
+    vp.add(p);
+    
+    r = new root("auto", "auto", "div#row3");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p, "resize");
+    p = new points([1.5], [1.5]);
+    vp.add(p, "resize");
+    
+    r = new root("auto", "auto", "div#row3");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p, "rescale");
+    p = new points([1.5], [1.5]);
+    vp.add(p, "rescale");
+    
+    r = new root("auto", "auto", "div#row3");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p, "grow");
+    p = new points([1.5], [1.5]);
+    vp.add(p, "grow");
+    
+    r = new root("auto", "auto", "div#row3");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p, "zoom");
+    p = new points([1.5], [1.5]);
+    vp.add(p, "zoom");
+    
+    testdiv.appendChild(document.createElement("p"));
+    div = document.createElement("div")
+    div.setAttribute("style", "display: flex; flex-direction: row");
+    div.setAttribute("id", "row4");
+    testdiv.appendChild(div);
+    
+    r = new root("auto", "auto", "div#row4");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p);
+    p = new points([1.5], [1.5]);
+    vp.add(p);
+    t = new text(["static"], [0], [0]);
+    vp.add(t);
+    
+    r = new root("auto", "auto", "div#row4");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p, "resize");
+    p = new points([1.5], [1.5]);
+    vp.add(p, "resize");
+    t = new text(["resize"], [0], [0]);
+    vp.add(t, "resize");
+    
+    r = new root("auto", "auto", "div#row4");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p, "rescale");
+    p = new points([1.5], [1.5]);
+    vp.add(p, "rescale");
+    t = new text(["rescale"], [0], [0]);
+    vp.add(t, "rescale");
+    
+    r = new root("auto", "auto", "div#row4");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p, "grow");
+    p = new points([1.5], [1.5]);
+    vp.add(p, "grow");
+    t = new text(["grow"], [0], [0]);
+    vp.add(t, "grow");
+    
+    r = new root("auto", "auto", "div#row4");
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    r.setContent(vp);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp.add(p, "zoom");
+    p = new points([1.5], [1.5]);
+    vp.add(p, "zoom");
+    t = new text(["zoom"], [0], [0]);
+    vp.add(t, "zoom");   
+}

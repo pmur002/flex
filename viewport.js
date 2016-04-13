@@ -15,6 +15,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     var foreignObject = null;
     var svg = null;
     var children = [];
+    var synced = [];
 
     function childrenXrange(parent) {
         var crange;
@@ -90,7 +91,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         return { top: top - bbox.y, bottom: bbox.y + bbox.height - bottom };
     }
     
-    function adjustWidth(width, padding) {
+    function setWidth(width, padding) {
         w = width;
         paddingLeft = padding.left;
         paddingRight = padding.right;
@@ -100,7 +101,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         foreignObject.setAttribute("width", w + paddingLeft + paddingRight);
     }
 
-    function adjustHeight(height, padding) {
+    function setHeight(height, padding) {
         h = height;
         paddingTop = padding.top;
         paddingBottom = padding.bottom;
@@ -108,6 +109,15 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         svg.setAttribute("height", hStr);
         outersvg.setAttribute("height", h + paddingTop + paddingBottom);
         foreignObject.setAttribute("height", h + paddingTop + paddingBottom);
+    }
+
+    function setPadding() {
+        var pleft = "padding-left:" + paddingLeft + ";";
+        var pright = "padding-right:" + paddingRight + ";";
+        var ptop = "padding-top:" + paddingTop + ";";
+        var pbottom = "padding-bottom:" + paddingBottom + ";";
+        svg.setAttribute("style", 
+                         pleft + pright + ptop + pbottom);
     }
 
     function rescaleX(parent, bbox) {
@@ -119,7 +129,8 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var newPadding = adjustXPadding(newLeft, newRight, bbox);
         var newWidth = (w + paddingLeft + paddingRight) - 
                        (newPadding.left + newPadding.right);
-        adjustWidth(newWidth, newPadding);
+
+        setWidth(newWidth, newPadding);
         xscale = newXscale;
     }
 
@@ -132,7 +143,8 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var newPadding = adjustYPadding(newTop, newBottom, bbox);
         var newHeight = (h + paddingTop + paddingBottom) - 
                         (newPadding.top + newPadding.bottom);
-        adjustHeight(newHeight, newPadding);
+
+        setHeight(newHeight, newPadding);
         yscale = newYscale;
     }
 
@@ -143,7 +155,8 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var newRight = adjustRight(w, xscale, newXscale);
         var newPadding = adjustXPadding(newLeft, newRight, bbox);
         var newWidth = newRight - newLeft;
-        adjustWidth(newWidth, newPadding);
+
+        setWidth(newWidth, newPadding);
         xscale = newXscale;
     }
     
@@ -155,17 +168,9 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var newBottom = adjustBottom(h, yscale, newYscale);
         var newPadding = adjustYPadding(newTop, newBottom, bbox);
         var newHeight = newBottom - newTop;
-        adjustHeight(newHeight, newPadding);
-        yscale = newYscale;
-    }
 
-    function adjustPadding() {
-        var pleft = "padding-left:" + paddingLeft + ";";
-        var pright = "padding-right:" + paddingRight + ";";
-        var ptop = "padding-top:" + paddingTop + ";";
-        var pbottom = "padding-bottom:" + paddingBottom + ";";
-        svg.setAttribute("style", 
-                         pleft + pright + ptop + pbottom);
+        setHeight(newHeight, newPadding);
+        yscale = newYscale;
     }
 
     this.content = function() {
@@ -187,6 +192,11 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     this.height = function() {
         return transformH(hStr, parentObj);
     }
+    
+    this.padding = function() {
+        return { left: paddingLeft, right: paddingRight,
+                 top: paddingTop, bottom: paddingBottom };
+    }
 
     this.build = function(parent) {
         x = transXtoPx(xStr, parent);
@@ -207,7 +217,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
             outersvg.setAttribute("overflow", "visible");
         }
         outersvg.setAttribute("style",
-		               "border: solid 1px #DDD; margin: 5px");
+		               "border: solid 1px #DDD");
     
         // Firefox needs width/height on <foreignObject/> 
         // (Chrome does not)
@@ -323,7 +333,97 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
                 children[i].update(this);
             }
             // Update padding on inner SVG
-            adjustPadding();
+            setPadding();
+            // Synchronise
+            for (var i = 0; i < synced.length; i++) {
+                synced[i].viewport.syncFrom(this, synced[i].type);
+            }
+        }
+    }
+
+    this.syncTo = function(vp, type) {
+        var newSync = { viewport: vp, type: type };
+        synced.push(newSync);
+        vp.syncFrom(this, type);
+    }
+
+    this.syncFrom = function(vp, type) {
+        var width = vp.width();
+        var height = vp.height();
+        var padding = vp.padding();
+        var xs = vp.xscale();
+        var ys = vp.yscale();
+        var update = false;
+
+        switch (type) {
+        case "all":
+            if (w != width || h != height ||
+                paddingLeft != padding.left ||
+                paddingRight != padding.right ||
+                paddingTop != padding.top ||
+                paddingBottom != padding.bottom ||
+                xscale[0] != xs[0] || xscale[1] != xs[1] ||
+                yscale[0] != ys[0] || yscale[1] != ys[1]) {                
+                setWidth(width, padding);
+                setHeight(height, padding);
+                xscale = xs;
+                yscale = ys;
+                update = true;
+            }
+            break;
+        case "x":
+            if (w != width || 
+                paddingLeft != padding.left ||
+                paddingRight != padding.right ||
+                xscale[0] != xs[0] || xscale[1] != xs[1]) { 
+                setWidth(width, padding);
+                xscale = xs;
+                update = true;
+            }
+            break;
+        case "y":
+            if (h != height ||
+                paddingTop != padding.top ||
+                paddingBottom != padding.bottom ||
+                yscale[0] != ys[0] || yscale[1] != ys[1]) {                
+                setHeight(height, padding);
+                yscale = ys;
+                update = true;
+            }
+            break;
+        case "scale":
+            if (xscale[0] != xs[0] || xscale[1] != xs[1] ||
+                yscale[0] != ys[0] || yscale[1] != ys[1]) {                
+                xscale = xs;
+                yscale = ys;
+                update = true;
+            }
+            break;
+        case "x-scale":
+            if (xscale[0] != xs[0] || xscale[1] != xs[1]) {                
+                xscale = xs;
+                update = true;
+            }
+            break;
+        case "y-scale":
+            if (yscale[0] != ys[0] || yscale[1] != ys[1]) {                
+                yscale = ys;
+                update = true;
+            }
+            break;
+        }
+
+        if (update) {
+            // Update all child positions
+            for (var i = 0; i < children.length; i++) {
+                children[i].update(this);
+            }
+            // Update padding on inner SVG
+            setPadding();
+            // Synchronise
+            for (var i = 0; i < synced.length; i++) {
+                synced[i].viewport.syncFrom(this, synced[i].type);
+            }
         }
     }
 }
