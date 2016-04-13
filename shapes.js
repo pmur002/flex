@@ -153,6 +153,7 @@ function text(lab, x, y) {
             position(t, i, parent);
 	    t.setAttribute("text-anchor", "middle");
 	    t.setAttribute("dominant-baseline", "middle");
+            t.setAttribute("font-family", "sans");
 	    var textNode = document.createTextNode(lab[i]);
             t.appendChild(textNode);
 
@@ -238,6 +239,7 @@ function xaxis() {
         var ticklab1 = createSVG("text");
 	ticklab1.setAttribute("text-anchor", "middle");
 	ticklab1.setAttribute("dominant-baseline", "text-before-edge");
+        ticklab1.setAttribute("font-family", "sans");
 	var textNode = document.createTextNode("");
         ticklab1.appendChild(textNode);
         svg.appendChild(ticklab1);
@@ -245,6 +247,7 @@ function xaxis() {
         var ticklab2 = createSVG("text");
 	ticklab2.setAttribute("text-anchor", "middle");
 	ticklab2.setAttribute("dominant-baseline", "text-before-edge");
+        ticklab2.setAttribute("font-family", "sans");
 	var textNode = document.createTextNode("");
         ticklab2.appendChild(textNode);
         svg.appendChild(ticklab2);
