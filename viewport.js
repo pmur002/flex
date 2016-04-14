@@ -173,6 +173,86 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         yscale = newYscale;
     }
 
+    function reflowX(parent, bbox, reflowx) {
+        var update = false;
+	switch (reflowx) {
+	case "static":
+	    // Do NOT change size or scale on viewport
+	    break;
+	case "rescale":
+	    // Change scale based on content, but NOT size
+	    // AND reduce scale if necessary
+            rescaleX(parent, bbox);
+            update = true;
+	    break;
+	case "zoom":
+	    // Change scale based on content, but NOT size
+	    // BUT only expand scale (do not reduce)
+            if (bbox.x < -paddingLeft || 
+                (bbox.x + bbox.width) > (w + paddingRight)) {
+	        rescaleX(parent, bbox);
+                update = true;
+	    }
+	    break;
+	case "resize":
+	    // Change scale AND size based on content
+	    // AND shrink if necessary
+            resizeX(parent, bbox);
+            update = true;
+	    break;
+	case "grow":
+	    // Change scale AND size based on content
+	    // BUT only grow (do not shrink)
+            if (bbox.x < -paddingLeft || 
+                (bbox.x + bbox.width) > (w + paddingRight)) {
+                resizeX(parent, bbox);
+                update = true;
+	    }
+	    break;
+	}
+        return update;
+    }
+    
+    function reflowY(parent, bbox, reflowy) {
+        var update = false;
+	switch (reflowy) {	    
+	case "static":
+	    // Do NOT change size or scale on viewport
+	    break;
+	case "rescale":
+	    // Change scale based on content, but NOT size
+	    // AND reduce scale if necessary
+            rescaleY(parent, bbox);
+            update = true;
+	    break;
+	case "zoom":
+	    // Change scale based on content, but NOT size
+	    // BUT only expand scale (do not reduce)
+            if (bbox.y < -paddingTop || 
+                (bbox.y + bbox.height) > (h + paddingBottom)) {
+                rescaleY(parent, bbox);
+                update = true;
+	    }
+	    break;
+	case "resize":
+	    // Change scale AND size based on content
+	    // AND shrink if necessary
+            resizeY(parent, bbox);
+            update = true;
+	    break;
+	case "grow":
+	    // Change scale AND size based on content
+	    // BUT only grow (do not shrink)
+            if (bbox.y < -paddingTop || 
+                (bbox.y + bbox.height) > (h + paddingBottom)) {
+                resizeY(parent, bbox);
+                update = true;
+	    }
+	    break;
+	}
+        return update;
+    }
+    
     this.content = function() {
         return outersvg;
     }
@@ -253,81 +333,10 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         children.push(child);
 
         var bbox = svg.getBBox();
-        var update = false;
+        var updateX = reflowX(this, bbox, reflowx);
+        var updateY = reflowY(this, bbox, reflowy);
 
-	switch (reflowx) {
-	case "static":
-	    // Do NOT change size or scale on viewport
-	    break;
-	case "rescale":
-	    // Change scale based on content, but NOT size
-	    // AND reduce scale if necessary
-            rescaleX(this, bbox);
-            update = true;
-	    break;
-	case "zoom":
-	    // Change scale based on content, but NOT size
-	    // BUT only expand scale (do not reduce)
-            if (bbox.x < -paddingLeft || 
-                (bbox.x + bbox.width) > (w + paddingRight)) {
-	        rescaleX(this, bbox);
-                update = true;
-	    }
-	    break;
-	case "resize":
-	    // Change scale AND size based on content
-	    // AND shrink if necessary
-            resizeX(this, bbox);
-            update = true;
-	    break;
-	case "grow":
-	    // Change scale AND size based on content
-	    // BUT only grow (do not shrink)
-            if (bbox.x < -paddingLeft || 
-                (bbox.x + bbox.width) > (w + paddingRight)) {
-                resizeX(this, bbox);
-                update = true;
-	    }
-	    break;
-	}
-
-	switch (reflowy) {	    
-	case "static":
-	    // Do NOT change size or scale on viewport
-	    break;
-	case "rescale":
-	    // Change scale based on content, but NOT size
-	    // AND reduce scale if necessary
-            rescaleY(this, bbox);
-            update = true;
-	    break;
-	case "zoom":
-	    // Change scale based on content, but NOT size
-	    // BUT only expand scale (do not reduce)
-            if (bbox.y < -paddingTop || 
-                (bbox.y + bbox.height) > (h + paddingBottom)) {
-                rescaleY(this, bbox);
-                update = true;
-	    }
-	    break;
-	case "resize":
-	    // Change scale AND size based on content
-	    // AND shrink if necessary
-            resizeY(this, bbox);
-            update = true;
-	    break;
-	case "grow":
-	    // Change scale AND size based on content
-	    // BUT only grow (do not shrink)
-            if (bbox.y < -paddingTop || 
-                (bbox.y + bbox.height) > (h + paddingBottom)) {
-                resizeY(this, bbox);
-                update = true;
-	    }
-	    break;
-	}
-
-        if (update) {
+        if (updateX || updateY) {
             // Update all child positions
             for (var i = 0; i < children.length; i++) {
                 children[i].update(this);

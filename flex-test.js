@@ -13,14 +13,14 @@ syncTest = function() {
     var testdiv = document.getElementById("test");
 
     r = new root("50%", "auto", "div#test");
-    c = new container("column");
-    r.setContent(c);
+    f = new flexbox("column");
+    r.setContent(f);
     vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-    c.add(vp1);
+    f.add(vp1);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp1.add(p);
     vp2 = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
-    c.add(vp2);
+    f.add(vp2);
     xa = new xaxis();
     vp2.add(xa, "static", "resize");
     vp1.syncTo(vp2, "x");
@@ -28,14 +28,14 @@ syncTest = function() {
     testdiv.appendChild(document.createElement("p"));
     
     r = new root("50%", "auto", "div#test");
-    c = new container("column");
-    r.setContent(c);
+    f = new flexbox("column");
+    r.setContent(f);
     vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-    c.add(vp1);
+    f.add(vp1);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp1.add(p);
     vp2 = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
-    c.add(vp2);
+    f.add(vp2);
     xa = new xaxis();
     vp2.add(xa, "static", "resize");
     vp1.syncTo(vp2, "x");
@@ -45,14 +45,14 @@ syncTest = function() {
     testdiv.appendChild(document.createElement("p"));
     
     r = new root("50%", "auto", "div#test");
-    c = new container("column");
-    r.setContent(c);
+    f = new flexbox("column");
+    r.setContent(f);
     vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-    c.add(vp1);
+    f.add(vp1);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp1.add(p);
     vp2 = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
-    c.add(vp2);
+    f.add(vp2);
     xa = new xaxis();
     vp2.add(xa, "static", "resize");
     vp1.syncTo(vp2, "x");
@@ -62,14 +62,14 @@ syncTest = function() {
     testdiv.appendChild(document.createElement("p"));
     
     r = new root("50%", "auto", "div#test");
-    c = new container("row");
-    r.setContent(c);
+    f = new flexbox("row");
+    r.setContent(f);
     vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-    c.add(vp1);
+    f.add(vp1);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp1.add(p);
     vp2 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-    c.add(vp2);
+    f.add(vp2);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp2.add(p);
     vp1.syncTo(vp2, "all");
@@ -80,14 +80,14 @@ syncTest = function() {
     testdiv.appendChild(document.createElement("p"));
     
     r = new root("50%", "auto", "div#test");
-    c = new container("row");
-    r.setContent(c);
+    f = new flexbox("row");
+    r.setContent(f);
     vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-    c.add(vp1);
+    f.add(vp1);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp1.add(p);
     vp2 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
-    c.add(vp2);
+    f.add(vp2);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp2.add(p);
     vp1.syncTo(vp2, "all");
@@ -96,6 +96,53 @@ syncTest = function() {
     vp1.add(p, "resize");
     t = new text(["rescale"], [0], [0]);
     vp2.add(t, "rescale");
+
+    testdiv.appendChild(document.createElement("p"));
+    
+    r = new root("50%", "auto", "div#test");
+    f = new flexbox("row");
+    r.setContent(f);
+    g = new grid(["auto", "100px"], ["100px", "auto"]);
+    f.add(g);
+    vp1 = new viewport("0px", "0px", "1px", "100px", [0, 1], [1, 0], false);
+    g.add(vp1);
+    ya = new yaxis();
+    vp1.add(ya, "resize", "static");
+    vp2 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    g.add(vp2);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp2.add(p);
+    // placeholder to fill bottom-left corner of grid
+    vp3 = new viewport("0px", "0px", "1px", "1px");
+    g.add(vp3);
+    vp4 = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
+    g.add(vp4);
+    xa = new xaxis();
+    vp4.add(xa, "static", "resize");
+    vp2.syncTo(vp4, "x");
+    vp2.syncTo(vp1, "y");
+    // second "frame"
+    g = new grid(["auto", "auto"], ["auto", "auto"]);
+    f.add(g);
+    vp1 = new viewport("0px", "0px", "1px", "100px", [0, 1], [1, 0], false);
+    g.add(vp1);
+    ya = new yaxis();
+    vp1.add(ya, "resize", "static");
+    vp2 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    g.add(vp2);
+    p = new points([.1, .2, .3], [.2, .1, .3]);
+    vp2.add(p);
+    // placeholder to fill bottom-left corner of grid
+    vp3 = new viewport("0px", "0px", "1px", "1px");
+    g.add(vp3);
+    vp4 = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
+    g.add(vp4);
+    xa = new xaxis();
+    vp4.add(xa, "static", "resize");
+    vp2.syncTo(vp4, "x");
+    vp2.syncTo(vp1, "y");
+    p = new points([1.5], [1.5]);
+    vp2.add(p, "resize");
 }
 
 basicTest = function() {

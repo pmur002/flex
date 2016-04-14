@@ -181,7 +181,6 @@ function xaxis() {
 
     function positionChildren(parent) {
         var xs = parent.xscale();
-        var xs = parent.xscale();
         var leftTick = Math.min(xs[0], xs[1]);
         var rightTick = Math.max(xs[0], xs[1]);
         var ltx = transXtoPx(leftTick, parent);
@@ -218,8 +217,7 @@ function xaxis() {
     }
     
     this.yrange = function(parent) {
-        var ys = parent.yscale();
-        return [ Math.min(ys[0], ys[1]), Math.max(ys[0], ys[1]) ];        
+        return [ 0, 1 ];
     }
     
     this.build = function(parent) {
@@ -247,6 +245,96 @@ function xaxis() {
         var ticklab2 = createSVG("text");
 	ticklab2.setAttribute("text-anchor", "middle");
 	ticklab2.setAttribute("dominant-baseline", "text-before-edge");
+        ticklab2.setAttribute("font-family", "sans");
+	var textNode = document.createTextNode("");
+        ticklab2.appendChild(textNode);
+        svg.appendChild(ticklab2);
+        children.ticklab2 = ticklab2;
+
+        positionChildren(parent);
+    }
+
+    // Recalculate position
+    this.update = function(parent) {
+        positionChildren(parent);
+    }
+}
+
+function yaxis() {
+    // assume lab, x and y same length
+    var svg = null;
+    var children = {};
+
+    this.content = function() {
+        return svg;
+    }
+
+    function positionChildren(parent) {
+        var ys = parent.yscale();
+        var bottomTick = Math.min(ys[0], ys[1]);
+        var topTick = Math.max(ys[0], ys[1]);
+        var bty = transYtoPx(bottomTick, parent);
+        var tty = transYtoPx(topTick, parent);
+        var right = transXtoPx(1, parent);
+        var left = transXtoPx("1 - 10px", parent);
+        children.major.setAttribute("x1", right);
+        children.major.setAttribute("x2", right);
+        children.major.setAttribute("y1", bty);
+        children.major.setAttribute("y2", tty);
+        children.tick1.setAttribute("x1", right);
+        children.tick1.setAttribute("x2", left);
+        children.tick1.setAttribute("y1", bty);
+        children.tick1.setAttribute("y2", bty);
+        children.tick2.setAttribute("x1", right);
+        children.tick2.setAttribute("x2", left);
+        children.tick2.setAttribute("y1", tty);
+        children.tick2.setAttribute("y2", tty);
+        children.ticklab1.setAttribute("x", left);
+        children.ticklab1.setAttribute("y", bty);
+	var textNode = document.createTextNode(bottomTick);
+        children.ticklab1.removeChild(children.ticklab1.childNodes[0]);
+        children.ticklab1.appendChild(textNode);
+        children.ticklab2.setAttribute("x", left);
+        children.ticklab2.setAttribute("y", tty);
+	textNode = document.createTextNode(topTick);
+        children.ticklab2.removeChild(children.ticklab2.childNodes[0]);
+        children.ticklab2.appendChild(textNode);
+    }
+    
+    this.xrange = function(parent) {
+        return [ 0, 1 ];
+    }
+    
+    this.yrange = function(parent) {
+        var ys = parent.yscale();
+        return [ Math.min(ys[0], ys[1]), Math.max(ys[0], ys[1]) ];        
+    }
+    
+    this.build = function(parent) {
+        svg = createSVG("g");
+        var major = createSVG("line");
+        major.setAttribute("stroke", "black");
+        svg.appendChild(major);
+        children.major = major;
+        var tick1 = createSVG("line");
+        tick1.setAttribute("stroke", "black");
+        svg.appendChild(tick1);
+        children.tick1 = tick1;
+        var tick2 = createSVG("line");
+        tick2.setAttribute("stroke", "black");
+        svg.appendChild(tick2);
+        children.tick2 = tick2;
+        var ticklab1 = createSVG("text");
+	ticklab1.setAttribute("text-anchor", "end");
+	ticklab1.setAttribute("dominant-baseline", "middle");
+        ticklab1.setAttribute("font-family", "sans");
+	var textNode = document.createTextNode("");
+        ticklab1.appendChild(textNode);
+        svg.appendChild(ticklab1);
+        children.ticklab1 = ticklab1;
+        var ticklab2 = createSVG("text");
+	ticklab2.setAttribute("text-anchor", "end");
+	ticklab2.setAttribute("dominant-baseline", "middle");
         ticklab2.setAttribute("font-family", "sans");
 	var textNode = document.createTextNode("");
         ticklab2.appendChild(textNode);
