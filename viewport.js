@@ -337,26 +337,43 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var updateY = reflowY(this, bbox, reflowy);
 
         if (updateX || updateY) {
+            // Update padding on inner SVG
+            setPadding();
             // Update all child positions
             for (var i = 0; i < children.length; i++) {
                 children[i].update(this);
             }
-            // Update padding on inner SVG
-            setPadding();
+
+            // Allow for child update requiring further reflow
+            var bbox = svg.getBBox();
+            var updateX = reflowX(this, bbox, reflowx);
+            var updateY = reflowY(this, bbox, reflowy);            
+            if (updateX || updateY) {
+                // Update padding on inner SVG
+                setPadding();
+            }
+
             // Synchronise
             for (var i = 0; i < synced.length; i++) {
-                synced[i].viewport.syncFrom(this, synced[i].type);
+                synced[i].viewport.syncFrom(this, 
+                                            synced[i].type,
+                                            synced[i].reflowx,
+                                            synced[i].reflowy);
             }
         }
     }
 
-    this.syncTo = function(vp, type) {
-        var newSync = { viewport: vp, type: type };
+    this.syncTo = function(vp, type, reflowx="static", reflowy=reflowx) {
+        // FIXME:  check for valid combination of 'type' and 'reflow'
+        //         e.g., "all" must pair with "static", but 
+        //               "x" can pair with "static" or "static"+"resize"
+        var newSync = { viewport: vp, type: type, 
+                        reflowx: reflowx, reflowy: reflowy };
         synced.push(newSync);
-        vp.syncFrom(this, type);
+        vp.syncFrom(this, type, reflowx, reflowy);
     }
 
-    this.syncFrom = function(vp, type) {
+    this.syncFrom = function(vp, type, reflowx, reflowy) {
         var width = vp.width();
         var height = vp.height();
         var padding = vp.padding();
@@ -408,13 +425,13 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
                 update = true;
             }
             break;
-        case "x-scale":
+        case "xscale":
             if (xscale[0] != xs[0] || xscale[1] != xs[1]) {                
                 xscale = xs;
                 update = true;
             }
             break;
-        case "y-scale":
+        case "yscale":
             if (yscale[0] != ys[0] || yscale[1] != ys[1]) {                
                 yscale = ys;
                 update = true;
@@ -423,12 +440,22 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         }
 
         if (update) {
+            // Update padding on inner SVG
+            setPadding();
             // Update all child positions
             for (var i = 0; i < children.length; i++) {
                 children[i].update(this);
             }
-            // Update padding on inner SVG
-            setPadding();
+            
+            // Allow for child update requiring further reflow
+            var bbox = svg.getBBox();
+            var updateX = reflowX(this, bbox, reflowx);
+            var updateY = reflowY(this, bbox, reflowy);            
+            if (updateX || updateY) {
+                // Update padding on inner SVG
+                setPadding();
+            }
+
             // Synchronise
             for (var i = 0; i < synced.length; i++) {
                 synced[i].viewport.syncFrom(this, synced[i].type);

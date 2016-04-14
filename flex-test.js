@@ -6,6 +6,41 @@ clearTest = function() {
     }
 }
 
+axisTest = function() {
+    
+    clearTest();
+
+    var testdiv = document.getElementById("test");
+
+    r = new root("50%", "auto", "div#test");
+    vp1 = new viewport("0px", "0px", "1px", "100px", [0, 1], [1, 0], false);
+    r.setContent(vp1);
+    ya = new yaxis();
+    vp1.add(ya, "resize", "static");
+    p = new points([1], [1.5]);
+    vp1.add(p, "resize", "rescale");
+
+    testdiv.appendChild(document.createElement("p"));
+
+    r = new root("auto", "auto", "div#test");
+    f = new flexbox("row");
+    r.setContent(f);
+    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0], false);
+    f.add(vp1);
+    xa = new xaxis();
+    vp1.add(xa, "static", "resize");
+    // just a spacer
+    vp0 = new viewport("0px", "0px", "100px", "10px");
+    f.add(vp0);
+    vp2 = new viewport("0px", "0px", "200px", "100px", [0, 1], [1, 0], false);
+    f.add(vp2);
+    xa = new xaxis();
+    vp2.add(xa, "static", "resize");
+    vp1.syncTo(vp2, "xscale", "resize", "resize");
+    p = new points([1.5], [1]);
+    vp1.add(p, "rescale", "static");    
+}
+
 syncTest = function() {
 
     clearTest();
@@ -139,8 +174,8 @@ syncTest = function() {
     g.add(vp4);
     xa = new xaxis();
     vp4.add(xa, "static", "resize");
-    vp2.syncTo(vp4, "x");
-    vp2.syncTo(vp1, "y");
+    vp2.syncTo(vp4, "x", "static", "resize");
+    vp2.syncTo(vp1, "y", "resize", "static");
     p = new points([1.5], [1.5]);
     vp2.add(p, "resize");
 }
