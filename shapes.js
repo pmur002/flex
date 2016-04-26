@@ -217,7 +217,7 @@ function xaxis() {
     }
     
     this.yrange = function(parent) {
-        return [ 0, 1 ];
+        return [ 1, 1 ];
     }
     
     this.build = function(parent) {
@@ -302,7 +302,7 @@ function yaxis() {
     }
     
     this.xrange = function(parent) {
-        return [ 0, 1 ];
+        return [ 0, 0 ];
     }
     
     this.yrange = function(parent) {

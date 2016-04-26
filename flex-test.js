@@ -6,6 +6,22 @@ clearTest = function() {
     }
 }
 
+resizeTest = function() {
+
+    clearTest();
+
+    var testdiv = document.getElementById("test");
+
+    r = new root("50%", "100px", "div#test");
+    vp1 = new viewport("0px", "0px", "100%", "100%", [0, 1], [1, 0], false);
+    r.setContent(vp1);
+    xa = new xaxis();
+    vp1.add(xa);
+    p = new points([1], [1.5]);
+    vp1.add(p, "rescale", "rescale");
+    
+}
+
 axisTest = function() {
     
     clearTest();

@@ -52,7 +52,9 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     }
 
     function adjustLeft(width, scale, newscale) {
-        if (scale[0] < scale[1]) {
+        if (nearlyEqual(scale[0], scale[1])) {
+	    return 0;
+	} else if (scale[0] < scale[1]) {
             return (newscale[0] - scale[0])/(scale[1] - scale[0])*width;
         } else {
             return (scale[0] - newscale[0])/(scale[0] - scale[1])*width;
@@ -60,7 +62,9 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     }
 
     function adjustRight(width, scale, newscale) {
-        if (scale[0] < scale[1]) {
+        if (nearlyEqual(scale[0], scale[1])) {
+	    return width;
+        } else if (scale[0] < scale[1]) {
             return (newscale[1] - scale[0])/(scale[1] - scale[0])*width;
         } else {
             return (scale[0] - newscale[1])/(scale[0] - scale[1])*width;
@@ -68,7 +72,9 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     }
 
     function adjustTop(height, scale, newscale) {
-        if (scale[0] < scale[1]) {
+        if (nearlyEqual(scale[0], scale[1])) {
+	    return 0;
+        } else if (scale[0] < scale[1]) {
             return (newscale[0] - scale[0])/(scale[1] - scale[0])*height;
         } else {
             return (scale[0] - newscale[0])/(scale[0] - scale[1])*height;
@@ -76,7 +82,9 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     }
 
     function adjustBottom(height, scale, newscale) {
-        if (scale[0] < scale[1]) {
+        if (nearlyEqual(scale[0], scale[1])) {
+	    return height;
+        } else if (scale[0] < scale[1]) {
             return (newscale[1] - scale[0])/(scale[1] - scale[0])*height;
         } else {
             return (scale[0] - newscale[1])/(scale[0] - scale[1])*height;
