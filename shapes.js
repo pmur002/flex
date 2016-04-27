@@ -181,12 +181,14 @@ function xaxis() {
 
     function positionChildren(parent) {
         var xs = parent.xscale();
+        var ys = parent.yscale();
+        var ymax = Math.max(ys[0], ys[1]);
         var leftTick = Math.min(xs[0], xs[1]);
         var rightTick = Math.max(xs[0], xs[1]);
         var ltx = transXtoPx(leftTick, parent);
         var rtx = transXtoPx(rightTick, parent);
-        var top = transYtoPx(1, parent);
-        var bot = transYtoPx("1 + 10px", parent);
+        var top = transYtoPx(ymax, parent);
+        var bot = transYtoPx(ymax + " + 10px", parent);
         children.major.setAttribute("x1", ltx);
         children.major.setAttribute("x2", rtx);
         children.major.setAttribute("y1", top);
@@ -217,7 +219,9 @@ function xaxis() {
     }
     
     this.yrange = function(parent) {
-        return [ 1, 1 ];
+        var ys = parent.yscale();
+        var ymax = Math.max(ys[0], ys[1]);
+        return [ ymax, ymax ];
     }
     
     this.build = function(parent) {
@@ -271,12 +275,14 @@ function yaxis() {
 
     function positionChildren(parent) {
         var ys = parent.yscale();
+        var xs = parent.xscale();
+        var xmin = Math.min(xs[0], xs[1]);
         var bottomTick = Math.min(ys[0], ys[1]);
         var topTick = Math.max(ys[0], ys[1]);
         var bty = transYtoPx(bottomTick, parent);
         var tty = transYtoPx(topTick, parent);
-        var right = transXtoPx(1, parent);
-        var left = transXtoPx("1 - 10px", parent);
+        var right = transXtoPx(xmin, parent);
+        var left = transXtoPx(xmin + " - 10px", parent);
         children.major.setAttribute("x1", right);
         children.major.setAttribute("x2", right);
         children.major.setAttribute("y1", bty);
@@ -302,7 +308,9 @@ function yaxis() {
     }
     
     this.xrange = function(parent) {
-        return [ 0, 0 ];
+        var xs = parent.xscale();
+        var xmin = Math.min(xs[0], xs[1]);
+        return [ xmin, xmin ];        
     }
     
     this.yrange = function(parent) {

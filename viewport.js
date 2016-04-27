@@ -466,7 +466,10 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 
             // Synchronise
             for (var i = 0; i < synced.length; i++) {
-                synced[i].viewport.syncFrom(this, synced[i].type);
+                synced[i].viewport.syncFrom(this, 
+                                            synced[i].type,
+                                            synced[i].reflowx,
+                                            synced[i].reflowy);
             }
         }
     }

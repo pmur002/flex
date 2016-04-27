@@ -40,6 +40,8 @@ transXtoPx = function(x, parent) {
     }
     
     var transform = function(x) {
+        // FIXME: special case for "auto" ?
+        // (propagate to other trans*() functions)
         if (x.includes("px")) {
             return x.replace(/px/, "");
         } else if (x.includes("%")) {
