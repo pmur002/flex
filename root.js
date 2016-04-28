@@ -1,5 +1,6 @@
 
 function root(w, h, parent) {
+    var content = null;
     var div;
     div = createHTML("div");
     div.setAttribute("id", "root");
@@ -7,6 +8,13 @@ function root(w, h, parent) {
                      "width: " + w + "; height: " + h);
     var parentElt = document.querySelector(parent);
     parentElt.appendChild(div);
+    // When root <div> changes, update children
+    function resize() {
+        if (content != null) {
+            content.update(this);
+        }
+    }
+    window.onresize = resize;
 
     this.xscale = function() {
         return [0, 1];
@@ -25,11 +33,13 @@ function root(w, h, parent) {
     }
     
     this.setContent = function(child) {
+        // FIXME: child MUST be a viewport?
         child.build(this);
         while (div.firstChild) {
             div.removeChild(div.firstChild);
         }
         div.appendChild(child.content());
+        content = child;
     }
 }
 
