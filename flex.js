@@ -7,9 +7,6 @@ createSVG = function(elt) {
     return document.createElementNS("http://www.w3.org/2000/svg", elt);
 }
 
-// A 'scale' can be [min,max] OR [max.min]
-// A 'range' is [min,max]
-
 // From http://floating-point-gui.de/errors/comparison/
 nearlyEqual = function(a, b, epsilon = 0.000000001) {
     var absA = Math.abs(a);
@@ -26,6 +23,65 @@ nearlyEqual = function(a, b, epsilon = 0.000000001) {
         return diff / (absA + absB) < epsilon;
     }
 }
+
+// A 'scale' can be [min,max] OR [max.min]
+// A 'range' is [min,max]
+
+// Modify a scale to match a range
+newScale = function(scale, range) {
+    var newscale = [];
+    if (scale[0] <= scale[1]) {
+        newscale[0] = range[0]
+        newscale[1] = range[1]
+    } else {
+        newscale[1] = range[0]
+        newscale[0] = range[1]
+    }
+    return newscale;
+}
+
+// Calculate left and right pixels for range based on scale and width
+// (or top and bottom pixels for range based on scale and height)
+newPixels = function(scale, range, dim) {
+    if (nearlyEqual(scale[0], scale[1])) {
+	return [ 0, dim ];
+    } else if (scale[0] <= scale[1]) {
+        return [ (range[0] - scale[0])/(scale[1] - scale[0])*dim,
+                 (range[1] - scale[0])/(scale[1] - scale[0])*dim ];
+    } else {
+        return [ (scale[0] - range[1])/(scale[0] - scale[1])*dim,
+                 (scale[0] - range[0])/(scale[0] - scale[1])*dim ];
+    }
+}
+
+// Calculate left and right margins based on left and right pixels and bbox
+newLRmargins = function(lrPixels, bbox) {
+    return [ lrPixels[0] - bbox.x, bbox.x + bbox.width - lrPixels[1] ];    
+}
+
+// Calculate top and bottom margins based on top and bottom pixels and bbox
+newTBmargins = function(tbPixels, bbox) {
+    return [ tbPixels[0] - bbox.y, bbox.y + bbox.height - tbPixels[1] ];    
+}
+
+// Calculate outer scale 
+// based on left and right margins, innerWidth, and inner scale
+newOuterScale = function(margins, innerDim, innerScale) {
+    if (nearlyEqual(innerScale[0], innerScale[1])) {
+        return innerScale;
+    } else if (innerScale[0] <= innerScale[1]) {
+        return [ innerScale[0] - 
+                 margins[0]/innerDim*(innerScale[1] - innerScale[0]),
+                 innerScale[1] + 
+                 margins[1]/innerDim*(innerScale[1] - innerScale[0]) ];
+    } else {
+        return [ innerScale[0] + 
+                 margins[0]/innerDim*(innerScale[0] - innerScale[1]),
+                 innerScale[1] -
+                 margins[1]/innerDim*(innerScale[0] - innerScale[1]) ];
+    }    
+}
+
 transXtoPx = function(x, parent) {
 
     var transScale = function(x, parent) {

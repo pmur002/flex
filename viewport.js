@@ -1,22 +1,43 @@
 
 function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     var parentObj = null;
+
     var xStr = String(x);
     var yStr = String(y);
     var wStr = String(w);
     var hStr = String(h);
-    var xscale = xscale;
-    var yscale = yscale;
+    var numX = (typeof(x) == "string");
+    var numY = (typeof(y) == "string");
+    var numW = (typeof(w) == "string");
+    var numH = (typeof(h) == "string");
+
+    // Maintain inner and outer size and scales
+    // These sizes should ALWAYS be numeric
+    var widthInner;
+    var heightInner;
+    var widthOuter;
+    var heightOuter;
     var paddingLeft = 0;
     var paddingRight = 0;
     var paddingTop = 0;
     var paddingBottom = 0;
-    var outersvg = null;
-    var foreignObject = null;
+
+    var xscaleInner = xscale;
+    var yscaleInner = yscale;
+    var xscaleOuter = xscale;
+    var yscaleOuter = yscale;
+
+    // The SVG generated for this viewport
     var svg = null;
+
+    // Links to child objects
     var children = [];
+
+    // Links to synchronised viewports
     var synced = [];
 
+    // Calculate range of LOCATIONS of children
+    // (does not include bounding box of children)
     function childrenXrange(parent) {
         var crange;
         var range = children[0].xrange(parent);
@@ -26,8 +47,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 		       Math.max(range[1], crange[1]) ];
 	}
 	return range;
-    }
-    
+    }    
     function childrenYrange(parent) {
         var crange;
         var range = children[0].yrange(parent);
@@ -39,146 +59,90 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	return range;
     }
     
-    function adjustScale(oldscale, range) {
-        var newscale = [];
-        if (oldscale[0] < oldscale[1]) {
-            newscale[0] = range[0]
-            newscale[1] = range[1]
-        } else {
-            newscale[1] = range[0]
-            newscale[0] = range[1]
-        }
-        return newscale;
+    function setWidth() {
+        svg.setAttribute("width", widthOuter);
     }
 
-    function adjustLeft(width, scale, newscale) {
-        if (nearlyEqual(scale[0], scale[1])) {
-	    return 0;
-	} else if (scale[0] < scale[1]) {
-            return (newscale[0] - scale[0])/(scale[1] - scale[0])*width;
-        } else {
-            return (scale[0] - newscale[0])/(scale[0] - scale[1])*width;
-        }
-    }
-
-    function adjustRight(width, scale, newscale) {
-        if (nearlyEqual(scale[0], scale[1])) {
-	    return width;
-        } else if (scale[0] < scale[1]) {
-            return (newscale[1] - scale[0])/(scale[1] - scale[0])*width;
-        } else {
-            return (scale[0] - newscale[1])/(scale[0] - scale[1])*width;
-        }
-    }
-
-    function adjustTop(height, scale, newscale) {
-        if (nearlyEqual(scale[0], scale[1])) {
-	    return 0;
-        } else if (scale[0] < scale[1]) {
-            return (newscale[0] - scale[0])/(scale[1] - scale[0])*height;
-        } else {
-            return (scale[0] - newscale[0])/(scale[0] - scale[1])*height;
-        }
-    }
-
-    function adjustBottom(height, scale, newscale) {
-        if (nearlyEqual(scale[0], scale[1])) {
-	    return height;
-        } else if (scale[0] < scale[1]) {
-            return (newscale[1] - scale[0])/(scale[1] - scale[0])*height;
-        } else {
-            return (scale[0] - newscale[1])/(scale[0] - scale[1])*height;
-        }
-    }
-
-    function adjustXPadding(left, right, bbox) {
-        return { left: left - bbox.x, right: bbox.x + bbox.width - right };
-    }
-    
-    function adjustYPadding(top, bottom, bbox) {
-        return { top: top - bbox.y, bottom: bbox.y + bbox.height - bottom };
-    }
-    
-    function setWidth(width, padding) {
-        w = width;
-        paddingLeft = padding.left;
-        paddingRight = padding.right;
-        wStr = w + "px";
-        svg.setAttribute("width", wStr);
-        outersvg.setAttribute("width", w + paddingLeft + paddingRight);
-        foreignObject.setAttribute("width", w + paddingLeft + paddingRight);
-    }
-
-    function setHeight(height, padding) {
-        h = height;
-        paddingTop = padding.top;
-        paddingBottom = padding.bottom;
-        hStr = h + "px";
-        svg.setAttribute("height", hStr);
-        outersvg.setAttribute("height", h + paddingTop + paddingBottom);
-        foreignObject.setAttribute("height", h + paddingTop + paddingBottom);
-    }
-
-    function setPadding() {
-        var pleft = "padding-left:" + paddingLeft + ";";
-        var pright = "padding-right:" + paddingRight + ";";
-        var ptop = "padding-top:" + paddingTop + ";";
-        var pbottom = "padding-bottom:" + paddingBottom + ";";
-        svg.setAttribute("style", 
-                         pleft + pright + ptop + pbottom);
+    function setHeight() {
+        svg.setAttribute("height", heightOuter);
     }
 
     function rescaleX(parent, bbox) {
         // Calculate new scale and new size and new padding
         var crange = childrenXrange(parent);
-        var newXscale = adjustScale(xscale, crange);
-        var newLeft = adjustLeft(w, xscale, newXscale);
-        var newRight = adjustRight(w, xscale, newXscale);
-        var newPadding = adjustXPadding(newLeft, newRight, bbox);
-        var newWidth = (w + paddingLeft + paddingRight) - 
-                       (newPadding.left + newPadding.right);
-
-        setWidth(newWidth, newPadding);
-        xscale = newXscale;
+        var newXscaleInner = newScale(xscaleInner, crange);
+        var newXpixels = newPixels(xscaleOuter, crange, widthOuter);
+        var newLR = newLRmargins(newXpixels, bbox);
+        var newWidthInner = widthOuter - newLR[0] - newLR[1];
+        var newXscaleOuter = newOuterScale(newLR, newWidthInner, 
+                                           newXscaleInner);
+        // Update object
+        widthInner = newWidthInner;
+        paddingLeft = newLR[0];
+        paddingRight = newLR[1];
+        xscaleInner = newXscaleInner;
+        xscaleOuter = newXscaleOuter;
+        // Update SVG
+        setWidth();
     }
 
     function rescaleY(parent, bbox) {
         // Calculate new scale and new size and new padding
         var crange = childrenYrange(parent);
-        var newYscale = adjustScale(yscale, crange);
-        var newTop = adjustTop(h, yscale, newYscale);
-        var newBottom = adjustBottom(h, yscale, newYscale);
-        var newPadding = adjustYPadding(newTop, newBottom, bbox);
-        var newHeight = (h + paddingTop + paddingBottom) - 
-                        (newPadding.top + newPadding.bottom);
-
-        setHeight(newHeight, newPadding);
-        yscale = newYscale;
+        var newYscaleInner = newScale(yscaleInner, crange);
+        var newYpixels = newPixels(yscaleOuter, crange, heightOuter);
+        var newTB = newTBmargins(newYpixels, bbox);
+        var newHeightInner = heightOuter - newTB[0] - newTB[1];
+        var newYscaleOuter = newOuterScale(newTB, newHeightInner, 
+                                           newYscaleInner);
+        // Update object
+        heightInner = newHeightInner;
+        paddingTop = newTB[0];
+        paddingBottom = newTB[1];
+        yscaleInner = newYscaleInner;
+        yscaleOuter = newYscaleOuter;
+        // Update SVG
+        setHeight();
     }
 
     function resizeX(parent, bbox) {
         var crange = childrenXrange(parent);
-        var newXscale = adjustScale(xscale, crange);
-        var newLeft = adjustLeft(w, xscale, newXscale);
-        var newRight = adjustRight(w, xscale, newXscale);
-        var newPadding = adjustXPadding(newLeft, newRight, bbox);
-        var newWidth = newRight - newLeft;
-
-        setWidth(newWidth, newPadding);
-        xscale = newXscale;
+        var newXscaleInner = newScale(xscaleInner, crange);
+        var newXpixels = newPixels(xscaleOuter, crange, widthOuter);
+        var newLR = newLRmargins(newXpixels, bbox);
+        var newWidthInner = newXpixels[1] - newXpixels[0];
+        var newWidthOuter = newWidthInner + newLR[0] + newLR[1];
+        var newXscaleOuter = newOuterScale(newLR, newWidthInner, 
+                                           newXscaleInner);
+        // Update object
+        widthInner = newWidthInner;
+        widthOuter = newWidthOuter;
+        paddingLeft = newLR[0];
+        paddingRight = newLR[1];
+        xscaleInner = newXscaleInner;
+        xscaleOuter = newXscaleOuter;
+        // Update SVG
+        setWidth();
     }
     
     function resizeY(parent, bbox) {
-        // Calculate new scale and new size and new padding
         var crange = childrenYrange(parent);
-        var newYscale = adjustScale(yscale, crange);
-        var newTop = adjustTop(h, yscale, newYscale);
-        var newBottom = adjustBottom(h, yscale, newYscale);
-        var newPadding = adjustYPadding(newTop, newBottom, bbox);
-        var newHeight = newBottom - newTop;
-
-        setHeight(newHeight, newPadding);
-        yscale = newYscale;
+        var newYscaleInner = newScale(yscaleInner, crange);
+        var newYpixels = newPixels(yscaleOuter, crange, heightOuter);
+        var newTB = newTBmargins(newYpixels, bbox);
+        var newHeightInner = newYpixels[1] - newYpixels[0];
+        var newHeightOuter = newHeightInner + newTB[0] + newTB[1];
+        var newYscaleOuter = newOuterScale(newTB, newHeightInner, 
+                                           newYscaleInner);
+        // Update object
+        heightInner = newHeightInner;
+        heightOuter = newHeightOuter;
+        paddingTop = newTB[0];
+        paddingBottom = newTB[1];
+        yscaleInner = newYscaleInner;
+        yscaleOuter = newYscaleOuter;
+        // Update SVG
+        setHeight();
     }
 
     function reflowX(parent, bbox, reflowx) {
@@ -196,8 +160,8 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	case "zoom":
 	    // Change scale based on content, but NOT size
 	    // BUT only expand scale (do not reduce)
-            if (bbox.x < -paddingLeft || 
-                (bbox.x + bbox.width) > (w + paddingRight)) {
+            if (bbox.x < 0 || 
+                (bbox.x + bbox.width) > widthOuter) {
 	        rescaleX(parent, bbox);
                 update = true;
 	    }
@@ -211,8 +175,8 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	case "grow":
 	    // Change scale AND size based on content
 	    // BUT only grow (do not shrink)
-            if (bbox.x < -paddingLeft || 
-                (bbox.x + bbox.width) > (w + paddingRight)) {
+            if (bbox.x < 0 || 
+                (bbox.x + bbox.width) > widthOuter) {
                 resizeX(parent, bbox);
                 update = true;
 	    }
@@ -236,8 +200,8 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	case "zoom":
 	    // Change scale based on content, but NOT size
 	    // BUT only expand scale (do not reduce)
-            if (bbox.y < -paddingTop || 
-                (bbox.y + bbox.height) > (h + paddingBottom)) {
+            if (bbox.y < 0 || 
+                (bbox.y + bbox.height) > heightOuter) {
                 rescaleY(parent, bbox);
                 update = true;
 	    }
@@ -251,8 +215,8 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	case "grow":
 	    // Change scale AND size based on content
 	    // BUT only grow (do not shrink)
-            if (bbox.y < -paddingTop || 
-                (bbox.y + bbox.height) > (h + paddingBottom)) {
+            if (bbox.y < 0 || 
+                (bbox.y + bbox.height) > heightOuter) {
                 resizeY(parent, bbox);
                 update = true;
 	    }
@@ -262,75 +226,48 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     }
     
     this.content = function() {
-        return outersvg;
+        return svg;
     }
 
     this.xscale = function() {
-        return xscale;
+        return xscaleOuter;
     }
 
     this.yscale = function() {
-        return yscale;
+        return yscaleOuter;
     }
 
     this.width = function() {
-        return transformW(wStr, parentObj);
+        return widthOuter;
     }
 
     this.height = function() {
-        return transformH(hStr, parentObj);
+        return heightOuter;
     }
     
-    this.padding = function() {
-        return { left: paddingLeft, right: paddingRight,
-                 top: paddingTop, bottom: paddingBottom };
-    }
-
     this.build = function(parent) {
         x = transXtoPx(xStr, parent);
         y = transYtoPx(yStr, parent);
-        w = transformW(wStr, parent);
-        h = transformH(hStr, parent);
-
-        outersvg = createSVG("svg");
-        outersvg.setAttribute("x", x);
-        outersvg.setAttribute("y", y);
-        outersvg.setAttribute("width", w);
-        outersvg.setAttribute("height", h);
-        // FIXME: this outer SVG overflow does not work on Firefox
-        //        (but does work on Chrome)
-        if (clip) {
-            outersvg.setAttribute("overflow", "hidden");
-        } else {
-            outersvg.setAttribute("overflow", "visible");
-        }
-        outersvg.setAttribute("style",
-		               "border: solid 1px #DDD");
-    
-        // Firefox needs width/height on <foreignObject/> 
-        // (Chrome does not)
-        foreignObject = createSVG("foreignObject");
-        foreignObject.setAttribute("x", x);
-        foreignObject.setAttribute("y", y);
-        foreignObject.setAttribute("width", w);
-        foreignObject.setAttribute("height", h);
-        outersvg.appendChild(foreignObject);
-
-        var html = createHTML("html");
-        foreignObject.appendChild(html);
-
-        var body = createHTML("body");
-        body.setAttribute("style", "margin: 0");
-        html.appendChild(body);
+        widthOuter = transformW(wStr, parent);
+        widthInner = widthOuter;
+        heightOuter = transformH(hStr, parent);
+        heightInner = heightOuter;
 
         svg = createSVG("svg");
         svg.setAttribute("x", x);
         svg.setAttribute("y", y);
-        svg.setAttribute("width", w);
-        svg.setAttribute("height", h);
-        svg.setAttribute("overflow", "visible");
-        body.appendChild(svg);
-
+        svg.setAttribute("width", widthOuter);
+        svg.setAttribute("height", heightOuter);
+        // FIXME: this  SVG overflow does not work on Firefox
+        //        (but does work on Chrome)
+        if (clip) {
+            svg.setAttribute("overflow", "hidden");
+        } else {
+            svg.setAttribute("overflow", "visible");
+        }
+        svg.setAttribute("style",
+		         "border: solid 1px #DDD");
+    
         parentObj = parent;
     }
 
@@ -345,20 +282,9 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var updateY = reflowY(this, bbox, reflowy);
 
         if (updateX || updateY) {
-            // Update padding on inner SVG
-            setPadding();
             // Update all child positions
             for (var i = 0; i < children.length; i++) {
                 children[i].update(this);
-            }
-
-            // Allow for child update requiring further reflow
-            var bbox = svg.getBBox();
-            var updateX = reflowX(this, bbox, reflowx);
-            var updateY = reflowY(this, bbox, reflowy);            
-            if (updateX || updateY) {
-                // Update padding on inner SVG
-                setPadding();
             }
 
             // Synchronise
