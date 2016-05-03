@@ -1,5 +1,10 @@
 
 function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
+
+    if (!((xscale[0] != xscale[1]) && yscale[0] != yscale[1])) {
+        throw new Error("Invalid viewport settings");
+    }
+
     var parentObj = null;
 
     var xStr = String(x);
@@ -73,11 +78,11 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var newXscaleInner = newScale(xscaleInner, crange);
         var newXpixels = newPixels(xscaleOuter, crange, widthOuter);
         var newLR = newLRmargins(newXpixels, bbox);
-        var newWidthInner = widthOuter - newLR[0] - newLR[1];
+        var newWidthInner = safeDim(widthOuter - newLR[0] - newLR[1]);
         var newXscaleOuter = newOuterScale(newLR, newWidthInner, 
                                            newXscaleInner);
         // Update object
-        widthInner = newWidthInner;
+        widthInner = safeDim(newWidthInner);
         paddingLeft = newLR[0];
         paddingRight = newLR[1];
         xscaleInner = newXscaleInner;
@@ -92,11 +97,11 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var newYscaleInner = newScale(yscaleInner, crange);
         var newYpixels = newPixels(yscaleOuter, crange, heightOuter);
         var newTB = newTBmargins(newYpixels, bbox);
-        var newHeightInner = heightOuter - newTB[0] - newTB[1];
+        var newHeightInner = safeDim(heightOuter - newTB[0] - newTB[1]);
         var newYscaleOuter = newOuterScale(newTB, newHeightInner, 
                                            newYscaleInner);
         // Update object
-        heightInner = newHeightInner;
+        heightInner = safeDim(newHeightInner);
         paddingTop = newTB[0];
         paddingBottom = newTB[1];
         yscaleInner = newYscaleInner;
@@ -110,12 +115,12 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var newXscaleInner = newScale(xscaleInner, crange);
         var newXpixels = newPixels(xscaleOuter, crange, widthOuter);
         var newLR = newLRmargins(newXpixels, bbox);
-        var newWidthInner = newXpixels[1] - newXpixels[0];
+        var newWidthInner = safeDim(newXpixels[1] - newXpixels[0]);
         var newWidthOuter = newWidthInner + newLR[0] + newLR[1];
         var newXscaleOuter = newOuterScale(newLR, newWidthInner, 
                                            newXscaleInner);
         // Update object
-        widthInner = newWidthInner;
+        widthInner = safeDim(newWidthInner);
         widthOuter = newWidthOuter;
         paddingLeft = newLR[0];
         paddingRight = newLR[1];
@@ -130,12 +135,12 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var newYscaleInner = newScale(yscaleInner, crange);
         var newYpixels = newPixels(yscaleOuter, crange, heightOuter);
         var newTB = newTBmargins(newYpixels, bbox);
-        var newHeightInner = newYpixels[1] - newYpixels[0];
+        var newHeightInner = safeDim(newYpixels[1] - newYpixels[0]);
         var newHeightOuter = newHeightInner + newTB[0] + newTB[1];
         var newYscaleOuter = newOuterScale(newTB, newHeightInner, 
                                            newYscaleInner);
         // Update object
-        heightInner = newHeightInner;
+        heightInner = safeDim(newHeightInner);
         heightOuter = newHeightOuter;
         paddingTop = newTB[0];
         paddingBottom = newTB[1];
@@ -237,6 +242,14 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         return yscaleOuter;
     }
 
+    this.xscaleData = function() {
+        return xscaleInner;
+    }
+
+    this.yscaleData = function() {
+        return yscaleInner;
+    }
+
     this.width = function() {
         return widthOuter;
     }
@@ -244,13 +257,18 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
     this.height = function() {
         return heightOuter;
     }
+
+    this.padding = function() {
+        return { left: paddingLeft, right: paddingRight,
+                 top: paddingTop, bottom: paddingBottom }
+    }
     
     this.build = function(parent) {
         x = transXtoPx(xStr, parent);
         y = transYtoPx(yStr, parent);
-        widthOuter = transformW(wStr, parent);
+        widthOuter = safeDim(transformW(wStr, parent));
         widthInner = widthOuter;
-        heightOuter = transformH(hStr, parent);
+        heightOuter = safeDim(transformH(hStr, parent));
         heightInner = heightOuter;
 
         svg = createSVG("svg");
@@ -317,77 +335,109 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 
         switch (type) {
         case "all":
-            if (w != width || h != height ||
+            if (widthOuter != width || heightOuter != height ||
                 paddingLeft != padding.left ||
                 paddingRight != padding.right ||
                 paddingTop != padding.top ||
                 paddingBottom != padding.bottom ||
-                xscale[0] != xs[0] || xscale[1] != xs[1] ||
-                yscale[0] != ys[0] || yscale[1] != ys[1]) {                
-                setWidth(width, padding);
-                setHeight(height, padding);
-                xscale = xs;
-                yscale = ys;
+                xscaleOuter[0] != xs[0] || xscaleOuter[1] != xs[1] ||
+                yscaleOuter[0] != ys[0] || yscaleOuter[1] != ys[1]) {
+                widthOuter = width;
+                heightOuter = height;
+                paddingLeft = padding.left;
+                paddingRight = padding.right;
+                paddingTop = padding.top;
+                paddingBottom = padding.bottom;
+                widthInner = widthOuter - paddingLeft - paddingRight;
+                heightInner = heightOuter - paddingTop - paddingBottom;
+                setWidth();
+                setHeight();
+                xscaleOuter = xs;
+                yscaleOuter = ys;
+                xscaleInner = newInnerScale([ paddingLeft, paddingRight ],
+                                            widthOuter, xscaleOuter);
+                yscaleInner = newInnerScale([ paddingTop, paddingBottom ],
+                                            heightOuter, yscaleOuter);
                 update = true;
             }
             break;
         case "x":
-            if (w != width || 
+            if (widthOuter != width || 
                 paddingLeft != padding.left ||
                 paddingRight != padding.right ||
-                xscale[0] != xs[0] || xscale[1] != xs[1]) { 
-                setWidth(width, padding);
-                xscale = xs;
+                xscaleOuter[0] != xs[0] || xscaleOuter[1] != xs[1]) {
+                widthOuter = width;
+                paddingLeft = padding.left;
+                paddingRight = padding.right;
+                widthInner = widthOuter - paddingLeft - paddingRight;
+                setWidth();
+                xscaleOuter = xs;
+                xscaleInner = newInnerScale([ paddingLeft, paddingRight ],
+                                            widthOuter, xscaleOuter);
                 update = true;
             }
             break;
         case "y":
-            if (h != height ||
+            if (heightOuter != height ||
                 paddingTop != padding.top ||
                 paddingBottom != padding.bottom ||
-                yscale[0] != ys[0] || yscale[1] != ys[1]) {                
-                setHeight(height, padding);
-                yscale = ys;
+                yscaleOuter[0] != ys[0] || yscaleOuter[1] != ys[1]) {
+                heightOuter = height;
+                paddingTop = padding.top;
+                paddingBottom = padding.bottom;
+                heightInner = heightOuter - paddingTop - paddingBottom;
+                setHeight();
+                yscaleOuter = ys;
+                yscaleInner = newInnerScale([ paddingTop, paddingBottom ],
+                                            heightOuter, yscaleOuter);
                 update = true;
             }
             break;
         case "scale":
-            if (xscale[0] != xs[0] || xscale[1] != xs[1] ||
-                yscale[0] != ys[0] || yscale[1] != ys[1]) {                
-                xscale = xs;
-                yscale = ys;
+            if (xscaleOuter[0] != xs[0] || xscaleOuter[1] != xs[1] ||
+                yscaleOuter[0] != ys[0] || yscaleOuter[1] != ys[1]) {
+                xscaleOuter = xs;
+                yscaleOuter = ys;
+                xscaleInner = newInnerScale([ paddingLeft, paddingRight ],
+                                            widthOuter, xscaleOuter);
+                yscaleInner = newInnerScale([ paddingTop, paddingBottom ],
+                                            heightOuter, yscaleOuter);
                 update = true;
             }
             break;
         case "xscale":
-            if (xscale[0] != xs[0] || xscale[1] != xs[1]) {                
-                xscale = xs;
+            if (xscaleOuter[0] != xs[0] || xscaleOuter[1] != xs[1]) {
+                xscaleOuter = xs;
+                xscaleInner = newInnerScale([ paddingLeft, paddingRight ],
+                                            widthOuter, xscaleOuter);
                 update = true;
             }
             break;
         case "yscale":
-            if (yscale[0] != ys[0] || yscale[1] != ys[1]) {                
-                yscale = ys;
+            if (yscaleOuter[0] != ys[0] || yscaleOuter[1] != ys[1]) {
+                yscaleOuter = ys;
+                yscaleInner = newInnerScale([ paddingTop, paddingBottom ],
+                                            heightOuter, yscaleOuter);
                 update = true;
             }
             break;
         }
 
         if (update) {
-            // Update padding on inner SVG
-            setPadding();
-            // Update all child positions
+            // Position all children relative to new size/scales
+            // (analogous to adding a new child in this.add())
             for (var i = 0; i < children.length; i++) {
                 children[i].update(this);
             }
             
-            // Allow for child update requiring further reflow
             var bbox = svg.getBBox();
             var updateX = reflowX(this, bbox, reflowx);
             var updateY = reflowY(this, bbox, reflowy);            
             if (updateX || updateY) {
-                // Update padding on inner SVG
-                setPadding();
+                // Update all child positions
+                for (var i = 0; i < children.length; i++) {
+                    children[i].update(this);
+                }
             }
 
             // Synchronise

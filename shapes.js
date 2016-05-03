@@ -180,7 +180,7 @@ function xaxis() {
     }
 
     function positionChildren(parent) {
-        var xs = parent.xscale();
+        var xs = parent.xscaleData();
         var ys = parent.yscale();
         var ymax = Math.max(ys[0], ys[1]);
         var leftTick = Math.min(xs[0], xs[1]);
@@ -214,7 +214,7 @@ function xaxis() {
     }
     
     this.xrange = function(parent) {
-        var xs = parent.xscale();
+        var xs = parent.xscaleData();
         return [ Math.min(xs[0], xs[1]), Math.max(xs[0], xs[1]) ];
     }
     
@@ -274,15 +274,15 @@ function yaxis() {
     }
 
     function positionChildren(parent) {
-        var ys = parent.yscale();
+        var ys = parent.yscaleData();
         var xs = parent.xscale();
-        var xmin = Math.min(xs[0], xs[1]);
+        var xmax = Math.max(xs[0], xs[1]);
         var bottomTick = Math.min(ys[0], ys[1]);
         var topTick = Math.max(ys[0], ys[1]);
         var bty = transYtoPx(bottomTick, parent);
         var tty = transYtoPx(topTick, parent);
-        var right = transXtoPx(xmin, parent);
-        var left = transXtoPx(xmin + " - 10px", parent);
+        var right = transXtoPx(xmax, parent);
+        var left = transXtoPx(xmax + " - 10px", parent);
         children.major.setAttribute("x1", right);
         children.major.setAttribute("x2", right);
         children.major.setAttribute("y1", bty);
@@ -309,12 +309,12 @@ function yaxis() {
     
     this.xrange = function(parent) {
         var xs = parent.xscale();
-        var xmin = Math.min(xs[0], xs[1]);
-        return [ xmin, xmin ];        
+        var xmax = Math.min(xs[0], xs[1]);
+        return [ xmax, xmax ];        
     }
     
     this.yrange = function(parent) {
-        var ys = parent.yscale();
+        var ys = parent.yscaleData();
         return [ Math.min(ys[0], ys[1]), Math.max(ys[0], ys[1]) ];        
     }
     

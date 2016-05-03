@@ -1,3 +1,24 @@
+QUnit.test( "newInnerScale() tests", function( assert ) {
+    function test(margins, dim, scale, model) {
+        var result = newInnerScale(margins, dim, scale);
+        assert.deepEqual(result, model);
+    }
+    // Zero-extent scales
+    test([0, 0], 10, [0, 0], [0, 0]);
+    test([5, 5], 10, [0, 0], [0, 0]);
+    // Zero margins
+    test([0, 0], 10, [0, 1], [0, 1]);
+    // Left margin
+    test([5, 0], 10, [0, 1], [.5, 1]);
+    // Right margin
+    test([0, 5], 10, [0, 1], [0, .5]);    
+    // Ditto right-to-left scales
+    test([0, 0], 10, [1, 0], [1, 0]);
+    test([5, 0], 10, [1, 0], [.5, 0]);
+    test([0, 5], 10, [1, 0], [1, .5]);
+
+    // TODO: Zero-width
+})
 QUnit.test( "newOuterScale() tests", function( assert ) {
     function test(margins, dim, scale, model) {
         var result = newOuterScale(margins, dim, scale);
