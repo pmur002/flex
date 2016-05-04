@@ -81,14 +81,26 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var newWidthInner = safeDim(widthOuter - newLR[0] - newLR[1]);
         var newXscaleOuter = newOuterScale(newLR, newWidthInner, 
                                            newXscaleInner);
-        // Update object
-        widthInner = safeDim(newWidthInner);
-        paddingLeft = newLR[0];
-        paddingRight = newLR[1];
-        xscaleInner = newXscaleInner;
-        xscaleOuter = newXscaleOuter;
-        // Update SVG
-        setWidth();
+        if (slightlyDifferent(widthInner, newWidthInner) ||
+            slightlyDifferent(paddingLeft, newLR[0]) ||
+            slightlyDifferent(paddingRight, newLR[1]) ||
+            slightlyDifferent(xscaleInner[0], newXscaleInner[0]) ||
+            slightlyDifferent(xscaleInner[1], newXscaleInner[1]) ||
+            slightlyDifferent(xscaleOuter[0], newXscaleOuter[0]) ||
+            slightlyDifferent(xscaleOuter[1], newXscaleOuter[1])) {            
+
+            // Update object
+            widthInner = safeDim(newWidthInner);
+            paddingLeft = newLR[0];
+            paddingRight = newLR[1];
+            xscaleInner = newXscaleInner;
+            xscaleOuter = newXscaleOuter;
+            // Update SVG
+            setWidth();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     function rescaleY(parent, bbox) {
@@ -100,14 +112,26 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var newHeightInner = safeDim(heightOuter - newTB[0] - newTB[1]);
         var newYscaleOuter = newOuterScale(newTB, newHeightInner, 
                                            newYscaleInner);
-        // Update object
-        heightInner = safeDim(newHeightInner);
-        paddingTop = newTB[0];
-        paddingBottom = newTB[1];
-        yscaleInner = newYscaleInner;
-        yscaleOuter = newYscaleOuter;
-        // Update SVG
-        setHeight();
+        if (slightlyDifferent(heightInner, newHeightInner) ||
+            slightlyDifferent(paddingTop, newTB[0]) ||
+            slightlyDifferent(paddingBottom, newTB[1]) ||
+            slightlyDifferent(yscaleInner[0], newYscaleInner[0]) ||
+            slightlyDifferent(yscaleInner[1], newYscaleInner[1]) ||
+            slightlyDifferent(yscaleOuter[0], newYscaleOuter[0]) ||
+            slightlyDifferent(yscaleOuter[1], newYscaleOuter[1])) {            
+
+            // Update object
+            heightInner = safeDim(newHeightInner);
+            paddingTop = newTB[0];
+            paddingBottom = newTB[1];
+            yscaleInner = newYscaleInner;
+            yscaleOuter = newYscaleOuter;
+            // Update SVG
+            setHeight();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     function resizeX(parent, bbox) {
@@ -119,15 +143,28 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var newWidthOuter = newWidthInner + newLR[0] + newLR[1];
         var newXscaleOuter = newOuterScale(newLR, newWidthInner, 
                                            newXscaleInner);
-        // Update object
-        widthInner = safeDim(newWidthInner);
-        widthOuter = newWidthOuter;
-        paddingLeft = newLR[0];
-        paddingRight = newLR[1];
-        xscaleInner = newXscaleInner;
-        xscaleOuter = newXscaleOuter;
-        // Update SVG
-        setWidth();
+        if (slightlyDifferent(widthInner, newWidthInner) ||
+            slightlyDifferent(widthOuter, newWidthOuter) ||
+            slightlyDifferent(paddingLeft, newLR[0]) ||
+            slightlyDifferent(paddingRight, newLR[1]) ||
+            slightlyDifferent(xscaleInner[0], newXscaleInner[0]) ||
+            slightlyDifferent(xscaleInner[1], newXscaleInner[1]) ||
+            slightlyDifferent(xscaleOuter[0], newXscaleOuter[0]) ||
+            slightlyDifferent(xscaleOuter[1], newXscaleOuter[1])) {            
+            
+            // Update object
+            widthInner = safeDim(newWidthInner);
+            widthOuter = newWidthOuter;
+            paddingLeft = newLR[0];
+            paddingRight = newLR[1];
+            xscaleInner = newXscaleInner;
+            xscaleOuter = newXscaleOuter;
+            // Update SVG
+            setWidth();
+            return true;
+        } else {
+            return false;
+        }
     }
     
     function resizeY(parent, bbox) {
@@ -139,15 +176,28 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var newHeightOuter = newHeightInner + newTB[0] + newTB[1];
         var newYscaleOuter = newOuterScale(newTB, newHeightInner, 
                                            newYscaleInner);
-        // Update object
-        heightInner = safeDim(newHeightInner);
-        heightOuter = newHeightOuter;
-        paddingTop = newTB[0];
-        paddingBottom = newTB[1];
-        yscaleInner = newYscaleInner;
-        yscaleOuter = newYscaleOuter;
-        // Update SVG
-        setHeight();
+        if (slightlyDifferent(heightInner, newHeightInner) ||
+            slightlyDifferent(heightOuter, newHeightOuter) ||
+            slightlyDifferent(paddingTop, newTB[0]) ||
+            slightlyDifferent(paddingBottom, newTB[1]) ||
+            slightlyDifferent(yscaleInner[0], newYscaleInner[0]) ||
+            slightlyDifferent(yscaleInner[1], newYscaleInner[1]) ||
+            slightlyDifferent(yscaleOuter[0], newYscaleOuter[0]) ||
+            slightlyDifferent(yscaleOuter[1], newYscaleOuter[1])) {            
+            
+            // Update object
+            heightInner = safeDim(newHeightInner);
+            heightOuter = newHeightOuter;
+            paddingTop = newTB[0];
+            paddingBottom = newTB[1];
+            yscaleInner = newYscaleInner;
+            yscaleOuter = newYscaleOuter;
+            // Update SVG
+            setHeight();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     function reflowX(parent, bbox, reflowx) {
@@ -159,31 +209,27 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	case "rescale":
 	    // Change scale based on content, but NOT size
 	    // AND reduce scale if necessary
-            rescaleX(parent, bbox);
-            update = true;
+            update = rescaleX(parent, bbox);
 	    break;
 	case "zoom":
 	    // Change scale based on content, but NOT size
 	    // BUT only expand scale (do not reduce)
             if (bbox.x < 0 || 
                 (bbox.x + bbox.width) > widthOuter) {
-	        rescaleX(parent, bbox);
-                update = true;
+	        update = rescaleX(parent, bbox);
 	    }
 	    break;
 	case "resize":
 	    // Change scale AND size based on content
 	    // AND shrink if necessary
-            resizeX(parent, bbox);
-            update = true;
+            update = resizeX(parent, bbox);
 	    break;
 	case "grow":
 	    // Change scale AND size based on content
 	    // BUT only grow (do not shrink)
             if (bbox.x < 0 || 
                 (bbox.x + bbox.width) > widthOuter) {
-                resizeX(parent, bbox);
-                update = true;
+                update = resizeX(parent, bbox);
 	    }
 	    break;
 	}
@@ -199,31 +245,27 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
 	case "rescale":
 	    // Change scale based on content, but NOT size
 	    // AND reduce scale if necessary
-            rescaleY(parent, bbox);
-            update = true;
+            update = rescaleY(parent, bbox);
 	    break;
 	case "zoom":
 	    // Change scale based on content, but NOT size
 	    // BUT only expand scale (do not reduce)
             if (bbox.y < 0 || 
                 (bbox.y + bbox.height) > heightOuter) {
-                rescaleY(parent, bbox);
-                update = true;
+                update = rescaleY(parent, bbox);
 	    }
 	    break;
 	case "resize":
 	    // Change scale AND size based on content
 	    // AND shrink if necessary
-            resizeY(parent, bbox);
-            update = true;
+            update = resizeY(parent, bbox);
 	    break;
 	case "grow":
 	    // Change scale AND size based on content
 	    // BUT only grow (do not shrink)
             if (bbox.y < 0 || 
                 (bbox.y + bbox.height) > heightOuter) {
-                resizeY(parent, bbox);
-                update = true;
+                update = resizeY(parent, bbox);
 	    }
 	    break;
 	}
@@ -308,13 +350,20 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
             // Repositioning may involve structural changes to
             // a child (e.g., labels on an axis if rescaled viewport)
             // SO do another round of reflow (and repositioning)
-            // FIXME: is it possible for this to infinite loop ?
-            bbox = svg.getBBox();
-            updateX = reflowX(this, bbox, reflowx);
-            updateY = reflowY(this, bbox, reflowy);
+            // (repeat for up to 10 reflows 
+            //  [arbitrary limit to avoid infinite loops])
+            var counter = 0;
+            while ((updateX || updateY) && counter < 10) {
+                bbox = svg.getBBox();
+                updateX = reflowX(this, bbox, reflowx);
+                updateY = reflowY(this, bbox, reflowy);
             
-            for (var i = 0; i < children.length; i++) {
-                children[i].update(this);
+                if (updateX || updateY) {
+                    for (var i = 0; i < children.length; i++) {
+                        children[i].update(this);
+                    }
+                    counter = counter + 1;
+                }
             }
 
             // Synchronise

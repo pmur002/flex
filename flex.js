@@ -7,6 +7,27 @@ createSVG = function(elt) {
     return document.createElementNS("http://www.w3.org/2000/svg", elt);
 }
 
+// From http://floating-point-gui.de/errors/comparison/
+nearlyEqual = function(a, b, epsilon = 0.000000001) {
+    var absA = Math.abs(a);
+    var absB = Math.abs(b);
+    var diff = Math.abs(a - b);
+
+    if (a == b) { // shortcut, handles infinities
+        return true;
+    } else if (a == 0 || b == 0 || diff < Number.MIN_VALUE) {
+        // a or b is zero or both are extremely close to it
+        // relative error is less meaningful here
+        return diff < (epsilon * Number.MIN_VALUE);
+    } else { // use relative error
+        return diff / (absA + absB) < epsilon;
+    }
+}
+
+slightlyDifferent = function(a, b, eps) {
+    return !nearlyEqual(a, b, eps) 
+}
+
 // A 'scale' can be [min,max] OR [max.min]
 // A 'range' is [min,max]
 
