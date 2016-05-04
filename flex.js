@@ -152,7 +152,7 @@ transXtoNative = function(x, parent) {
             return toNative(x.replace(/px/, ""));
         } else if (x.includes("%")) {
             var percent = Number(x.replace(/%/, ""));
-            return toNative(parent.width()*percent/100);
+            return toNative(parent.width()*percent/100, parent);
         } else {
             // Better be a number!!
             return Number(x);
@@ -212,7 +212,7 @@ transYtoNative = function(y, parent) {
             return toNative(x.replace(/px/, ""));
         } else if (x.includes("%")) {
             var percent = Number(x.replace(/%/, ""));
-            return toNative(parent.width()*percent/100);
+            return toNative(parent.height()*percent/100, parent);
         } else {
             // Better be a number!!
             return Number(x);

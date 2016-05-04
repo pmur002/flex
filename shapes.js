@@ -133,8 +133,16 @@ function text(lab, x, y) {
     }
 
     function position(child, i, parent) {
-        child.setAttribute("x", transXtoPx(x[i], parent));
-        child.setAttribute("y", transYtoPx(y[i], parent));
+        if (numX[i]) {
+            child.setAttribute("x", transXtoPx(x[i], parent));
+        } else {
+            child.setAttribute("x", transXtoPx(xStr[i], parent));
+        }
+        if (numY[i]) {
+            child.setAttribute("y", transYtoPx(y[i], parent));
+        } else {
+            child.setAttribute("y", transYtoPx(yStr[i], parent));
+        }            
     }
     
     this.xrange = function(parent) {
@@ -170,8 +178,13 @@ function text(lab, x, y) {
     }
 }
 
-function xaxis() {
-    // assume lab, x and y same length
+function xaxis(y="0%") {
+    var yStr;
+    var numY = true;
+    if (typeof(y) == "string") {
+        yStr = y;
+        numY = false;
+    }
     var svg = null;
     var children = {};
 
@@ -182,13 +195,22 @@ function xaxis() {
     function positionChildren(parent) {
         var xs = parent.xscaleData();
         var ys = parent.yscale();
-        var ymax = Math.max(ys[0], ys[1]);
         var leftTick = Math.min(xs[0], xs[1]);
         var rightTick = Math.max(xs[0], xs[1]);
         var ltx = transXtoPx(leftTick, parent);
         var rtx = transXtoPx(rightTick, parent);
-        var top = transYtoPx(ymax, parent);
-        var bot = transYtoPx(ymax + " + 10px", parent);
+        var top;
+        var bot;
+        if (numY) {
+            top = transYtoPx(y, parent);
+        } else {
+            top = transYtoPx(yStr, parent);
+        }            
+        if (numY) {
+            bot = transYtoPx(y + " + 10px", parent);
+        } else {
+            bot = transYtoPx(yStr + " + 10px", parent);
+        }            
         children.major.setAttribute("x1", ltx);
         children.major.setAttribute("x2", rtx);
         children.major.setAttribute("y1", top);
@@ -219,9 +241,13 @@ function xaxis() {
     }
     
     this.yrange = function(parent) {
-        var ys = parent.yscale();
-        var ymax = Math.max(ys[0], ys[1]);
-        return [ ymax, ymax ];
+        var yval;
+        if (numY) {
+            yval = y;
+        } else {
+            yval = transYtoNative(yStr, parent);
+        }
+        return [ yval, yval ];
     }
     
     this.build = function(parent) {
@@ -264,8 +290,13 @@ function xaxis() {
     }
 }
 
-function yaxis() {
-    // assume lab, x and y same length
+function yaxis(x="100%") {
+    var xStr;
+    var numX = true;
+    if (typeof(x) == "string") {
+        xStr = x;
+        numX = false;
+    }
     var svg = null;
     var children = {};
 
@@ -281,8 +312,17 @@ function yaxis() {
         var topTick = Math.max(ys[0], ys[1]);
         var bty = transYtoPx(bottomTick, parent);
         var tty = transYtoPx(topTick, parent);
-        var right = transXtoPx(xmax, parent);
-        var left = transXtoPx(xmax + " - 10px", parent);
+        var left, right;
+        if (numX) {
+            right = transXtoPx(x, parent);
+        } else {
+            right = transXtoPx(xStr, parent);
+        }            
+        if (numX) {
+            left = transXtoPx(x + " - 10px", parent);
+        } else {
+            left = transXtoPx(xStr + " - 10px", parent);
+        }            
         children.major.setAttribute("x1", right);
         children.major.setAttribute("x2", right);
         children.major.setAttribute("y1", bty);
@@ -308,9 +348,13 @@ function yaxis() {
     }
     
     this.xrange = function(parent) {
-        var xs = parent.xscale();
-        var xmax = Math.min(xs[0], xs[1]);
-        return [ xmax, xmax ];        
+        var xval;
+        if (numX) {
+            xval = x;
+        } else {
+            xval = transXtoNative(xStr, parent);
+        }
+        return [ xval, xval ];
     }
     
     this.yrange = function(parent) {

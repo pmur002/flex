@@ -305,6 +305,18 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
                 children[i].update(this);
             }
 
+            // Repositioning may involve structural changes to
+            // a child (e.g., labels on an axis if rescaled viewport)
+            // SO do another round of reflow (and repositioning)
+            // FIXME: is it possible for this to infinite loop ?
+            bbox = svg.getBBox();
+            updateX = reflowX(this, bbox, reflowx);
+            updateY = reflowY(this, bbox, reflowy);
+            
+            for (var i = 0; i < children.length; i++) {
+                children[i].update(this);
+            }
+
             // Synchronise
             for (var i = 0; i < synced.length; i++) {
                 synced[i].viewport.syncFrom(this, 
@@ -331,6 +343,8 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         var padding = vp.padding();
         var xs = vp.xscale();
         var ys = vp.yscale();
+        var xsData = vp.xscaleData();
+        var ysData= vp.yscaleData();
         var update = false;
 
         switch (type) {
@@ -418,6 +432,95 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
                 yscaleOuter = ys;
                 yscaleInner = newInnerScale([ paddingTop, paddingBottom ],
                                             heightOuter, yscaleOuter);
+                update = true;
+            }
+            break;
+        // "Data" versions sync scaleInner then recalc scaleOuter
+        // (previous versions synced scaleOuter then recalced scaleInner)
+        case "allData":
+            if (widthOuter != width || heightOuter != height ||
+                paddingLeft != padding.left ||
+                paddingRight != padding.right ||
+                paddingTop != padding.top ||
+                paddingBottom != padding.bottom ||
+                xscaleOuter[0] != xs[0] || xscaleOuter[1] != xs[1] ||
+                yscaleOuter[0] != ys[0] || yscaleOuter[1] != ys[1]) {
+                widthOuter = width;
+                heightOuter = height;
+                paddingLeft = padding.left;
+                paddingRight = padding.right;
+                paddingTop = padding.top;
+                paddingBottom = padding.bottom;
+                widthInner = widthOuter - paddingLeft - paddingRight;
+                heightInner = heightOuter - paddingTop - paddingBottom;
+                setWidth();
+                setHeight();
+                xscaleInner = xsData;
+                yscaleInner = ysData;
+                xscaleOuter = newOuterScale([ paddingLeft, paddingRight ],
+                                            widthInner, xscaleInner);
+                yscaleOuter = newOuterScale([ paddingTop, paddingBottom ],
+                                            heightInner, yscaleInner);
+                update = true;
+            }
+            break;
+        case "xData":
+            if (widthOuter != width || 
+                paddingLeft != padding.left ||
+                paddingRight != padding.right ||
+                xscaleOuter[0] != xs[0] || xscaleOuter[1] != xs[1]) {
+                widthOuter = width;
+                paddingLeft = padding.left;
+                paddingRight = padding.right;
+                widthInner = widthOuter - paddingLeft - paddingRight;
+                setWidth();
+                xscaleInner = xsData;
+                xscaleOuter = newOuterScale([ paddingLeft, paddingRight ],
+                                            widthInner, xscaleInner);
+                update = true;
+            }
+            break;
+        case "yData":
+            if (heightOuter != height ||
+                paddingTop != padding.top ||
+                paddingBottom != padding.bottom ||
+                yscaleOuter[0] != ys[0] || yscaleOuter[1] != ys[1]) {
+                heightOuter = height;
+                paddingTop = padding.top;
+                paddingBottom = padding.bottom;
+                heightInner = heightOuter - paddingTop - paddingBottom;
+                setHeight();
+                yscaleInner = ysData;
+                yscaleOuter = newOuterScale([ paddingTop, paddingBottom ],
+                                            heightInner, yscaleInner);
+                update = true;
+            }
+            break;
+        case "scaleData":
+            if (xscaleOuter[0] != xs[0] || xscaleOuter[1] != xs[1] ||
+                yscaleOuter[0] != ys[0] || yscaleOuter[1] != ys[1]) {
+                xscaleInner = xsData;
+                yscaleInner = ysData;
+                xscaleOuter = newOuterScale([ paddingLeft, paddingRight ],
+                                            widthInner, xscaleInner);
+                yscaleOuter = newOuterScale([ paddingTop, paddingBottom ],
+                                            heightInner, yscaleInner);
+                update = true;
+            }
+            break;
+        case "xscaleData":
+            if (xscaleOuter[0] != xs[0] || xscaleOuter[1] != xs[1]) {
+                xscaleInner = xsData;
+                xscaleOuter = newOuterScale([ paddingLeft, paddingRight ],
+                                            widthInner, xscaleInner);
+                update = true;
+            }
+            break;
+        case "yscaleData":
+            if (yscaleOuter[0] != ys[0] || yscaleOuter[1] != ys[1]) {
+                yscaleInner = ysData;
+                yscaleOuter = newOuterScale([ paddingTop, paddingBottom ],
+                                            heightInner, yscaleInner);
                 update = true;
             }
             break;

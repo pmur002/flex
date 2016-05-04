@@ -31,7 +31,7 @@ axisTest = function() {
     r = new root("50%", "auto", "div#test");
     vp1 = new viewport("0px", "0px", "1px", "100px", [0, 1], [1, 0], false);
     r.setContent(vp1);
-    ya = new yaxis();
+    ya = new yaxis(1);
     vp1.add(ya, "resize", "static");
     p = new points([1], [1.5]);
     vp1.add(p, "resize", "rescale");
@@ -52,7 +52,7 @@ axisTest = function() {
     f.add(vp2);
     xa = new xaxis();
     vp2.add(xa, "static", "resize");
-    vp1.syncTo(vp2, "xscale", "resize", "resize");
+    vp1.syncTo(vp2, "xscaleData", "resize", "resize");
     p = new points([1.5], [1]);
     vp1.add(p, "rescale", "static");    
 }
