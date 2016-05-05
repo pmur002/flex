@@ -304,20 +304,41 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         return { left: paddingLeft, right: paddingRight,
                  top: paddingTop, bottom: paddingBottom }
     }
-    
-    this.build = function(parent) {
-        x = transXtoPx(xStr, parent);
-        y = transYtoPx(yStr, parent);
-        widthOuter = safeDim(transformW(wStr, parent));
-        widthInner = widthOuter;
-        heightOuter = safeDim(transformH(hStr, parent));
-        heightInner = heightOuter;
 
-        svg = createSVG("svg");
+    function position(parent) {
+        var svgx, svgy, svgw, svgh;
+        if (numX) {
+            svgx = transXtoPx(x, parent);
+        } else {
+            svgx = transXtoPx(xStr, parent);
+        }
+        if (numY) {
+            svgy = transYtoPx(y, parent);
+        } else {
+            svgy = transYtoPx(yStr, parent);
+        }
+        if (numW) {
+            widthOuter = safeDim(transformW(w, parent));
+        } else {
+            widthOuter = safeDim(transformW(wStr, parent));
+        }
+        widthInner = widthOuter - paddingLeft - paddingRight;
+        if (numH) {
+            heightOuter = safeDim(transformH(h, parent));
+        } else {
+            heightOuter = safeDim(transformH(hStr, parent));
+        }
+        heightInner = heightOuter - paddingTop - paddingBottom;
+
         svg.setAttribute("x", x);
         svg.setAttribute("y", y);
         svg.setAttribute("width", widthOuter);
         svg.setAttribute("height", heightOuter);
+    }
+    
+    this.build = function(parent) {
+        svg = createSVG("svg");
+        position(parent);
         // FIXME: this  SVG overflow does not work on Firefox
         //        (but does work on Chrome)
         if (clip) {
@@ -327,7 +348,6 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
         }
         svg.setAttribute("style",
 		         "border: solid 1px #DDD");
-    
         parentObj = parent;
     }
 
@@ -373,6 +393,32 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
                                             synced[i].reflowx,
                                             synced[i].reflowy);
             }
+        }
+    }
+
+    this.update = function(parent) {
+        // Set new widthOuter and calc widthInner from that and 
+        // existing padding
+        position(parent);
+        // Calc new scaleOuter from new widthInner and existing scaleInner
+        xscaleOuter = newOuterScale([ paddingLeft, paddingRight ], 
+                                    widthInner, xscaleInner);
+        yscaleOuter = newOuterScale([ paddingTop, paddingBottom ], 
+                                    heightInner, yscaleInner);
+
+        // Update all child positions
+        for (var i = 0; i < children.length; i++) {
+            children[i].update(this);
+        }
+
+        // Do NOT reflow
+
+        // Synchronise
+        for (var i = 0; i < synced.length; i++) {
+            synced[i].viewport.syncFrom(this, 
+                                        synced[i].type,
+                                        synced[i].reflowx,
+                                        synced[i].reflowy);
         }
     }
 
@@ -582,13 +628,25 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
                 children[i].update(this);
             }
             
-            var bbox = svg.getBBox();
-            var updateX = reflowX(this, bbox, reflowx);
-            var updateY = reflowY(this, bbox, reflowy);            
-            if (updateX || updateY) {
-                // Update all child positions
-                for (var i = 0; i < children.length; i++) {
-                    children[i].update(this);
+            var bbox;
+            var updateX = true;
+            var updateY = true;
+            // Repositioning may involve structural changes to
+            // a child (e.g., labels on an axis if rescaled viewport)
+            // SO do another round of reflow (and repositioning)
+            // (repeat for up to 10 reflows 
+            //  [arbitrary limit to avoid infinite loops])
+            var counter = 0;
+            while ((updateX || updateY) && counter < 10) {
+                bbox = svg.getBBox();
+                updateX = reflowX(this, bbox, reflowx);
+                updateY = reflowY(this, bbox, reflowy);
+            
+                if (updateX || updateY) {
+                    for (var i = 0; i < children.length; i++) {
+                        children[i].update(this);
+                    }
+                    counter = counter + 1;
                 }
             }
 

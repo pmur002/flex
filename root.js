@@ -9,9 +9,10 @@ function root(w, h, parent) {
     var parentElt = document.querySelector(parent);
     parentElt.appendChild(div);
     // When root <div> changes, update children
+    var me = this;
     function resize() {
         if (content != null) {
-            content.update(this);
+            content.update(me);
         }
     }
     window.onresize = resize;
@@ -25,11 +26,11 @@ function root(w, h, parent) {
     }
 
     this.width = function() {
-        return div.scrollWidth;
+        return div.clientWidth;
     } 
 
     this.height = function() {
-        return div.scrollHeight;
+        return div.clientHeight;
     }
     
     this.setContent = function(child) {
