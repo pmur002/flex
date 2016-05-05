@@ -258,7 +258,7 @@ transLocToNative = function(x, scale, flip, dim) {
 
     var toNative = function(x, scale, flip, dim) {
         if (dim === 0) {
-            return transToNativeZeroExtentScale(x, scale, flip);
+            return transToNativeZeroExtentDim(x, scale, flip);
         } else if (flip) {
             return scale[0] - x/dim*(scale[0] - scale[1]);
         } else {

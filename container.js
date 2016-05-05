@@ -5,6 +5,30 @@ function flexbox(direction="row") {
     div.setAttribute("style", 
                      "display: flex; flex-direction: " + direction);
 
+    this.xscale = function() {
+        return [0, 1];
+    }
+
+    this.yscale = function() {
+        return [0, 1];
+    }
+
+    this.xflip = function() {
+        return false;
+    }
+
+    this.yflip = function() {
+        return false;
+    }
+
+    this.width = function() {
+        return div.clientWidth;
+    } 
+
+    this.height = function() {
+        return div.clientHeight;
+    }
+    
     this.build = function() {
     };
 
@@ -13,7 +37,7 @@ function flexbox(direction="row") {
     }
     
     this.add = function(child) {
-        child.build();
+        child.build(this);
         div.appendChild(child.content());
         children.push(child);
     }
@@ -39,6 +63,30 @@ function grid(widths, heights) {
                      "grid-template-columns: " + widthStr + "; " + 
                      "grid-template-rows: " + heightStr);
 
+    this.xscale = function() {
+        return [0, 1];
+    }
+
+    this.yscale = function() {
+        return [0, 1];
+    }
+
+    this.xflip = function() {
+        return false;
+    }
+
+    this.yflip = function() {
+        return false;
+    }
+
+    this.width = function() {
+        return div.clientWidth;
+    } 
+
+    this.height = function() {
+        return div.clientHeight;
+    }
+    
     this.build = function() {
     };
 
@@ -47,7 +95,7 @@ function grid(widths, heights) {
     }
     
     this.add = function(child) {
-        child.build();
+        child.build(this);
         div.appendChild(child.content());
         children.push(child);
     }    

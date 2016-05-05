@@ -52,7 +52,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
 	for (var i = 1; i < children.length; i++) {
 	    crange = children[i].xrange(parent);
 	    range = [ Math.min(range[0], crange[0]),
-		       Math.max(range[1], crange[1]) ];
+		      Math.max(range[1], crange[1]) ];
 	}
 	return range;
     }    
@@ -79,11 +79,11 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
         // Calculate new scale and new size and new padding
         var crange = childrenXrange(parent);
         var newXscaleInner = newScale(xscaleInner, crange);
-        var newXpixels = newPixels(xscaleOuter, crange, widthOuter);
+        var newXpixels = newPixels(xscaleOuter, xflip, crange, widthOuter);
         var newLR = newLRmargins(newXpixels, bbox);
         var newWidthInner = safeDim(widthOuter - newLR[0] - newLR[1]);
         var newXscaleOuter = newOuterScale(newLR, newWidthInner, 
-                                           newXscaleInner);
+                                           newXscaleInner, xflip);
         if (slightlyDifferent(widthInner, newWidthInner) ||
             slightlyDifferent(paddingLeft, newLR[0]) ||
             slightlyDifferent(paddingRight, newLR[1]) ||
@@ -110,11 +110,11 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
         // Calculate new scale and new size and new padding
         var crange = childrenYrange(parent);
         var newYscaleInner = newScale(yscaleInner, crange);
-        var newYpixels = newPixels(yscaleOuter, crange, heightOuter);
+        var newYpixels = newPixels(yscaleOuter, yflip, crange, heightOuter);
         var newTB = newTBmargins(newYpixels, bbox);
         var newHeightInner = safeDim(heightOuter - newTB[0] - newTB[1]);
         var newYscaleOuter = newOuterScale(newTB, newHeightInner, 
-                                           newYscaleInner);
+                                           newYscaleInner, yflip);
         if (slightlyDifferent(heightInner, newHeightInner) ||
             slightlyDifferent(paddingTop, newTB[0]) ||
             slightlyDifferent(paddingBottom, newTB[1]) ||
@@ -140,12 +140,12 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
     function resizeX(parent, bbox) {
         var crange = childrenXrange(parent);
         var newXscaleInner = newScale(xscaleInner, crange);
-        var newXpixels = newPixels(xscaleOuter, crange, widthOuter);
+        var newXpixels = newPixels(xscaleOuter, xflip, crange, widthOuter);
         var newLR = newLRmargins(newXpixels, bbox);
         var newWidthInner = safeDim(newXpixels[1] - newXpixels[0]);
         var newWidthOuter = newWidthInner + newLR[0] + newLR[1];
         var newXscaleOuter = newOuterScale(newLR, newWidthInner, 
-                                           newXscaleInner);
+                                           newXscaleInner, xflip);
         if (slightlyDifferent(widthInner, newWidthInner) ||
             slightlyDifferent(widthOuter, newWidthOuter) ||
             slightlyDifferent(paddingLeft, newLR[0]) ||
@@ -173,12 +173,12 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
     function resizeY(parent, bbox) {
         var crange = childrenYrange(parent);
         var newYscaleInner = newScale(yscaleInner, crange);
-        var newYpixels = newPixels(yscaleOuter, crange, heightOuter);
+        var newYpixels = newPixels(yscaleOuter, yflip, crange, heightOuter);
         var newTB = newTBmargins(newYpixels, bbox);
         var newHeightInner = safeDim(newYpixels[1] - newYpixels[0]);
         var newHeightOuter = newHeightInner + newTB[0] + newTB[1];
         var newYscaleOuter = newOuterScale(newTB, newHeightInner, 
-                                           newYscaleInner);
+                                           newYscaleInner, yflip);
         if (slightlyDifferent(heightInner, newHeightInner) ||
             slightlyDifferent(heightOuter, newHeightOuter) ||
             slightlyDifferent(paddingTop, newTB[0]) ||
@@ -295,6 +295,14 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
         return yscaleInner;
     }
 
+    this.xflip = function() {
+        return xflip;
+    }
+    
+    this.yflip = function() {
+        return yflip;
+    }
+    
     this.width = function() {
         return widthOuter;
     }
@@ -321,15 +329,15 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
             svgy = transYtoPx(yStr, parent);
         }
         if (numW) {
-            widthOuter = safeDim(transformW(w, parent));
+            widthOuter = safeDim(transWtoPx(w, parent));
         } else {
-            widthOuter = safeDim(transformW(wStr, parent));
+            widthOuter = safeDim(transWtoPx(wStr, parent));
         }
         widthInner = widthOuter - paddingLeft - paddingRight;
         if (numH) {
-            heightOuter = safeDim(transformH(h, parent));
+            heightOuter = safeDim(transHtoPx(h, parent));
         } else {
-            heightOuter = safeDim(transformH(hStr, parent));
+            heightOuter = safeDim(transHtoPx(hStr, parent));
         }
         heightInner = heightOuter - paddingTop - paddingBottom;
 
@@ -405,9 +413,9 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
         position(parent);
         // Calc new scaleOuter from new widthInner and existing scaleInner
         xscaleOuter = newOuterScale([ paddingLeft, paddingRight ], 
-                                    widthInner, xscaleInner);
+                                    widthInner, xscaleInner, xflip);
         yscaleOuter = newOuterScale([ paddingTop, paddingBottom ], 
-                                    heightInner, yscaleInner);
+                                    heightInner, yscaleInner, yflip);
 
         // Update all child positions
         for (var i = 0; i < children.length; i++) {
@@ -467,9 +475,9 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
                 xscaleOuter = xs;
                 yscaleOuter = ys;
                 xscaleInner = newInnerScale([ paddingLeft, paddingRight ],
-                                            widthOuter, xscaleOuter);
+                                            widthOuter, xscaleOuter, xflip);
                 yscaleInner = newInnerScale([ paddingTop, paddingBottom ],
-                                            heightOuter, yscaleOuter);
+                                            heightOuter, yscaleOuter, yflip);
                 update = true;
             }
             break;
@@ -485,7 +493,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
                 setWidth();
                 xscaleOuter = xs;
                 xscaleInner = newInnerScale([ paddingLeft, paddingRight ],
-                                            widthOuter, xscaleOuter);
+                                            widthOuter, xscaleOuter, xflip);
                 update = true;
             }
             break;
@@ -501,7 +509,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
                 setHeight();
                 yscaleOuter = ys;
                 yscaleInner = newInnerScale([ paddingTop, paddingBottom ],
-                                            heightOuter, yscaleOuter);
+                                            heightOuter, yscaleOuter, yflip);
                 update = true;
             }
             break;
@@ -511,9 +519,9 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
                 xscaleOuter = xs;
                 yscaleOuter = ys;
                 xscaleInner = newInnerScale([ paddingLeft, paddingRight ],
-                                            widthOuter, xscaleOuter);
+                                            widthOuter, xscaleOuter, xflip);
                 yscaleInner = newInnerScale([ paddingTop, paddingBottom ],
-                                            heightOuter, yscaleOuter);
+                                            heightOuter, yscaleOuter, yflip);
                 update = true;
             }
             break;
@@ -521,7 +529,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
             if (xscaleOuter[0] != xs[0] || xscaleOuter[1] != xs[1]) {
                 xscaleOuter = xs;
                 xscaleInner = newInnerScale([ paddingLeft, paddingRight ],
-                                            widthOuter, xscaleOuter);
+                                            widthOuter, xscaleOuter, xflip);
                 update = true;
             }
             break;
@@ -529,7 +537,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
             if (yscaleOuter[0] != ys[0] || yscaleOuter[1] != ys[1]) {
                 yscaleOuter = ys;
                 yscaleInner = newInnerScale([ paddingTop, paddingBottom ],
-                                            heightOuter, yscaleOuter);
+                                            heightOuter, yscaleOuter, yflip);
                 update = true;
             }
             break;
@@ -556,9 +564,9 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
                 xscaleInner = xsData;
                 yscaleInner = ysData;
                 xscaleOuter = newOuterScale([ paddingLeft, paddingRight ],
-                                            widthInner, xscaleInner);
+                                            widthInner, xscaleInner, xflip);
                 yscaleOuter = newOuterScale([ paddingTop, paddingBottom ],
-                                            heightInner, yscaleInner);
+                                            heightInner, yscaleInner, yflip);
                 update = true;
             }
             break;
@@ -574,7 +582,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
                 setWidth();
                 xscaleInner = xsData;
                 xscaleOuter = newOuterScale([ paddingLeft, paddingRight ],
-                                            widthInner, xscaleInner);
+                                            widthInner, xscaleInner, xflip);
                 update = true;
             }
             break;
@@ -590,7 +598,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
                 setHeight();
                 yscaleInner = ysData;
                 yscaleOuter = newOuterScale([ paddingTop, paddingBottom ],
-                                            heightInner, yscaleInner);
+                                            heightInner, yscaleInner, yflip);
                 update = true;
             }
             break;
@@ -600,9 +608,9 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
                 xscaleInner = xsData;
                 yscaleInner = ysData;
                 xscaleOuter = newOuterScale([ paddingLeft, paddingRight ],
-                                            widthInner, xscaleInner);
+                                            widthInner, xscaleInner, xflip);
                 yscaleOuter = newOuterScale([ paddingTop, paddingBottom ],
-                                            heightInner, yscaleInner);
+                                            heightInner, yscaleInner, yflip);
                 update = true;
             }
             break;
@@ -610,7 +618,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
             if (xscaleOuter[0] != xs[0] || xscaleOuter[1] != xs[1]) {
                 xscaleInner = xsData;
                 xscaleOuter = newOuterScale([ paddingLeft, paddingRight ],
-                                            widthInner, xscaleInner);
+                                            widthInner, xscaleInner, xflip);
                 update = true;
             }
             break;
@@ -618,7 +626,7 @@ function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1],
             if (yscaleOuter[0] != ys[0] || yscaleOuter[1] != ys[1]) {
                 yscaleInner = ysData;
                 yscaleOuter = newOuterScale([ paddingTop, paddingBottom ],
-                                            heightInner, yscaleInner);
+                                            heightInner, yscaleInner, yflip);
                 update = true;
             }
             break;

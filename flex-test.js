@@ -13,7 +13,7 @@ resizeTest = function() {
     var testdiv = document.getElementById("test");
 
     r = new root("50%", "100px", "div#test");
-    vp1 = new viewport("0px", "0px", "100%", "100%", [0, 1], [1, 0], false);
+    vp1 = new viewport("0px", "0px", "100%", "100%", [0, 1], [0, 1], false);
     r.setContent(vp1);
     xa = new xaxis();
     vp1.add(xa);
@@ -29,7 +29,7 @@ axisTest = function() {
     var testdiv = document.getElementById("test");
 
     r = new root("50%", "auto", "div#test");
-    vp1 = new viewport("0px", "0px", "1px", "100px", [0, 1], [1, 0], false);
+    vp1 = new viewport("0px", "0px", "1px", "100px", [0, 1], [0, 1], false);
     r.setContent(vp1);
     ya = new yaxis(1);
     vp1.add(ya, "resize", "static");
@@ -41,14 +41,14 @@ axisTest = function() {
     r = new root("auto", "auto", "div#test");
     f = new flexbox("row");
     r.setContent(f);
-    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0], false);
+    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1], false);
     f.add(vp1);
     xa = new xaxis();
     vp1.add(xa, "static", "resize");
     // just a spacer
     vp0 = new viewport("0px", "0px", "100px", "10px");
     f.add(vp0);
-    vp2 = new viewport("0px", "0px", "200px", "100px", [0, 1], [1, 0], false);
+    vp2 = new viewport("0px", "0px", "200px", "100px", [0, 1], [0, 1], false);
     f.add(vp2);
     xa = new xaxis();
     vp2.add(xa, "static", "resize");
@@ -66,11 +66,11 @@ syncTest = function() {
     r = new root("50%", "auto", "div#test");
     f = new flexbox("column");
     r.setContent(f);
-    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     f.add(vp1);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp1.add(p);
-    vp2 = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
+    vp2 = new viewport("0px", "0px", "100px", "1px", [0, 1], [0, 1], false);
     f.add(vp2);
     xa = new xaxis();
     vp2.add(xa, "static", "resize");
@@ -81,11 +81,11 @@ syncTest = function() {
     r = new root("50%", "auto", "div#test");
     f = new flexbox("column");
     r.setContent(f);
-    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     f.add(vp1);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp1.add(p);
-    vp2 = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
+    vp2 = new viewport("0px", "0px", "100px", "1px", [0, 1], [0, 1], false);
     f.add(vp2);
     xa = new xaxis();
     vp2.add(xa, "static", "resize");
@@ -98,11 +98,11 @@ syncTest = function() {
     r = new root("50%", "auto", "div#test");
     f = new flexbox("column");
     r.setContent(f);
-    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     f.add(vp1);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp1.add(p);
-    vp2 = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
+    vp2 = new viewport("0px", "0px", "100px", "1px", [0, 1], [0, 1], false);
     f.add(vp2);
     xa = new xaxis();
     vp2.add(xa, "static", "resize");
@@ -115,11 +115,11 @@ syncTest = function() {
     r = new root("50%", "auto", "div#test");
     f = new flexbox("row");
     r.setContent(f);
-    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     f.add(vp1);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp1.add(p);
-    vp2 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp2 = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     f.add(vp2);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp2.add(p);
@@ -133,11 +133,11 @@ syncTest = function() {
     r = new root("50%", "auto", "div#test");
     f = new flexbox("row");
     r.setContent(f);
-    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp1 = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     f.add(vp1);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp1.add(p);
-    vp2 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp2 = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     f.add(vp2);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp2.add(p);
@@ -155,18 +155,18 @@ syncTest = function() {
     r.setContent(f);
     g = new grid(["auto", "100px"], ["100px", "auto"]);
     f.add(g);
-    vp1 = new viewport("0px", "0px", "1px", "100px", [0, 1], [1, 0], false);
+    vp1 = new viewport("0px", "0px", "1px", "100px", [0, 1], [0, 1], false);
     g.add(vp1);
     ya = new yaxis();
     vp1.add(ya, "resize", "static");
-    vp2 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp2 = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     g.add(vp2);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp2.add(p);
     // placeholder to fill bottom-left corner of grid
     vp3 = new viewport("0px", "0px", "1px", "1px");
     g.add(vp3);
-    vp4 = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
+    vp4 = new viewport("0px", "0px", "100px", "1px", [0, 1], [0, 1], false);
     g.add(vp4);
     xa = new xaxis();
     vp4.add(xa, "static", "resize");
@@ -175,18 +175,18 @@ syncTest = function() {
     // second "frame"
     g = new grid(["auto", "auto"], ["auto", "auto"]);
     f.add(g);
-    vp1 = new viewport("0px", "0px", "1px", "100px", [0, 1], [1, 0], false);
+    vp1 = new viewport("0px", "0px", "1px", "100px", [0, 1], [0, 1], false);
     g.add(vp1);
     ya = new yaxis();
     vp1.add(ya, "resize", "static");
-    vp2 = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp2 = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     g.add(vp2);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp2.add(p);
     // placeholder to fill bottom-left corner of grid
     vp3 = new viewport("0px", "0px", "1px", "1px");
     g.add(vp3);
-    vp4 = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
+    vp4 = new viewport("0px", "0px", "100px", "1px", [0, 1], [0, 1], false);
     g.add(vp4);
     xa = new xaxis();
     vp4.add(xa, "static", "resize");
@@ -203,7 +203,7 @@ basicTest = function() {
     var testdiv = document.getElementById("test");
 
     r = new root("50%", "100px", "div#test");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p);
@@ -213,7 +213,7 @@ basicTest = function() {
     testdiv.appendChild(document.createElement("p"));
     
     r = new root("50%", "100px", "div#test");
-    vp = new viewport("0px", "0px", "50%", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "50%", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p);
@@ -225,27 +225,27 @@ basicTest = function() {
     testdiv.appendChild(div);
     
     r = new root("auto", "auto", "div#row1");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     
     r = new root("auto", "auto", "div#row1");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     
     r = new root("auto", "auto", "div#row1");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     
     r = new root("auto", "auto", "div#row1");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     
     r = new root("auto", "auto", "div#row1");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     
     r = new root("auto", "auto", "div#row1");
-    vp = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
+    vp = new viewport("0px", "0px", "100px", "0px", [0, 1], [0, 1], false);
     r.setContent(vp);
     
     testdiv.appendChild(document.createElement("p"));
@@ -255,37 +255,37 @@ basicTest = function() {
     testdiv.appendChild(div);
     
     r = new root("auto", "auto", "div#row2");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p);
     
     r = new root("auto", "auto", "div#row2");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p, "resize");
     
     r = new root("auto", "auto", "div#row2");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p, "rescale");
     
     r = new root("auto", "auto", "div#row2");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p, "grow");
     
     r = new root("auto", "auto", "div#row2");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p, "zoom");
     
     r = new root("auto", "auto", "div#row2");
-    vp = new viewport("0px", "0px", "100px", "1px", [0, 1], [1, 0], false);
+    vp = new viewport("0px", "0px", "100px", "0px", [0, 1], [0, 1], false);
     r.setContent(vp);
     xa = new xaxis();
     vp.add(xa, "static", "resize");
@@ -297,7 +297,7 @@ basicTest = function() {
     testdiv.appendChild(div);
     
     r = new root("auto", "auto", "div#row3");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p);
@@ -305,7 +305,7 @@ basicTest = function() {
     vp.add(p);
     
     r = new root("auto", "auto", "div#row3");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p, "resize");
@@ -313,7 +313,7 @@ basicTest = function() {
     vp.add(p, "resize");
     
     r = new root("auto", "auto", "div#row3");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p, "rescale");
@@ -321,7 +321,7 @@ basicTest = function() {
     vp.add(p, "rescale");
     
     r = new root("auto", "auto", "div#row3");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p, "grow");
@@ -329,7 +329,7 @@ basicTest = function() {
     vp.add(p, "grow");
     
     r = new root("auto", "auto", "div#row3");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p, "zoom");
@@ -343,7 +343,7 @@ basicTest = function() {
     testdiv.appendChild(div);
     
     r = new root("auto", "auto", "div#row4");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p);
@@ -353,7 +353,7 @@ basicTest = function() {
     vp.add(t);
     
     r = new root("auto", "auto", "div#row4");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p, "resize");
@@ -363,7 +363,7 @@ basicTest = function() {
     vp.add(t, "resize");
     
     r = new root("auto", "auto", "div#row4");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p, "rescale");
@@ -373,7 +373,7 @@ basicTest = function() {
     vp.add(t, "rescale");
     
     r = new root("auto", "auto", "div#row4");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p, "grow");
@@ -383,7 +383,7 @@ basicTest = function() {
     vp.add(t, "grow");
     
     r = new root("auto", "auto", "div#row4");
-    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [1, 0]);
+    vp = new viewport("0px", "0px", "100px", "100px", [0, 1], [0, 1]);
     r.setContent(vp);
     p = new points([.1, .2, .3], [.2, .1, .3]);
     vp.add(p, "zoom");

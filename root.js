@@ -25,6 +25,14 @@ function root(w, h, parent) {
         return [0, 1];
     }
 
+    this.xflip = function() {
+        return false;
+    }
+
+    this.yflip = function() {
+        return false;
+    }
+
     this.width = function() {
         return div.clientWidth;
     } 
