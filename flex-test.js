@@ -29,9 +29,9 @@ axisTest = function() {
     var testdiv = document.getElementById("test");
 
     r = new root("50%", "auto", "div#test");
-    vp1 = new viewport("0px", "0px", "1px", "100px", [0, 1], [0, 1], false);
+    vp1 = new viewport("0px", "0px", "0px", "100px", [0, 1], [0, 1], false);
     r.setContent(vp1);
-    ya = new yaxis(1);
+    ya = new yaxis();
     vp1.add(ya, "resize", "static");
     p = new points([1], [1.5]);
     vp1.add(p, "resize", "rescale");
