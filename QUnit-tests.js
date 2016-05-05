@@ -1,3 +1,67 @@
+QUnit.test( "transLocToNative() tests", function( assert ) {
+    function test(x, scale, flip, dim, model) {
+        var result = transLocToNative(x, scale, flip, dim);
+        assert.deepEqual(result, model);
+    }
+    // Already native
+    test(10, [-1, 1], false, 10, 10);
+    // Px
+    test("10px", [-1, 1], false, 10, 1);
+    // %
+    test("50%", [-1, 1], false, 10, 0);
+})
+QUnit.test( "transDimToPx() tests", function( assert ) {
+    function test(x, scale, flip, dim, model) {
+        var result = transDimToPx(x, scale, flip, dim);
+        assert.deepEqual(result, model);
+    }
+    test(0, [-1, 1], false, 10, 0);
+    test(1, [-1, 1], false, 10, 5);
+    test(2, [-1, 1], false, 10, 10);
+    test(0, [-1, 1], true, 10, 0);
+    test(1, [-1, 1], true, 10, 5);
+    test(2, [-1, 1], true, 10, 10);
+})
+QUnit.test( "transLocToPx() tests", function( assert ) {
+    function test(x, scale, flip, dim, model) {
+        var result = transLocToPx(x, scale, flip, dim);
+        assert.deepEqual(result, model);
+    }
+    test(0, [-1, 1], false, 20, 10);
+    test(1, [-1, 1], false, 20, 20);
+    test(-1, [-1, 1], false, 20, 0);
+    test(2, [-1, 1], false, 20, 30);
+    test(-2, [-1, 1], false, 20, -10);
+    test(0, [-1, 1], true, 20, 10);
+    test(1, [-1, 1], true, 20, 0);
+    test(-1, [-1, 1], true, 20, 20);
+    test(2, [-1, 1], true, 20, -10);
+    test(-2, [-1, 1], true, 20, 30);
+})
+QUnit.test( "transToNativeZeroExtentDim() tests", function( assert ) {
+    function test(x, scale, flip, model) {
+        var result = transToNativeZeroExtentDim(x, scale, flip);
+        assert.deepEqual(result, model);
+    }
+    test(0, [0, 1], false, .5);
+    test(5, [0, 1], false, 1);
+    test(-5, [0, 1], false, 0);
+    test(0, [0, 1], true, .5);
+    test(5, [0, 1], true, 0);
+    test(-5, [0, 1], true, 1);
+})
+QUnit.test( "transToPxZeroExtentScale() tests", function( assert ) {
+    function test(x, scale, flip, dim, model) {
+        var result = transToPxZeroExtentScale(x, scale, flip, dim);
+        assert.deepEqual(result, model);
+    }
+    test(0, [0, 0], false, 10, 5);
+    test(-5, [0, 0], false, 10, 0);
+    test(5, [0, 0], false, 10, 10);
+    test(0, [0, 0], true, 10, 5);
+    test(-5, [0, 0], true, 10, 10);
+    test(5, [0, 0], true, 10, 0);
+})
 QUnit.test( "newInnerScale() tests", function( assert ) {
     function test(margins, dim, scale, flip, model) {
         var result = newInnerScale(margins, dim, scale, flip);

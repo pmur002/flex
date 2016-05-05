@@ -138,14 +138,51 @@ newInnerScale = function(margins, outerDim, outerScale, flip) {
     }
 }
 
-transXtoPx = function(x, parent) {
-
-    var transScale = function(x, parent) {
-        var xs = parent.xscale();
-        if (xs[0] < xs[1]) {
-            return parent.width()*(x - xs[0])/(xs[1] - xs[0]);
+transToPxZeroExtentScale = function(x, scale, flip, dim) {
+    if (x === scale[0]) {
+        return dim/2;
+    } else if (flip) {
+        if (x > scale[0]) {
+            return 0;
         } else {
-            return parent.width()*(1 - (x - xs[1])/(xs[0] - xs[1]));
+            return dim;
+        }
+    } else {
+        if (x < scale[0]) {
+            return 0;
+        } else {
+            return dim;
+        }
+    }
+}
+
+transToNativeZeroExtentDim = function(x, scale, flip) {
+    if (x === 0) {
+        return (scale[0] + scale[1])/2;
+    } else if (flip) {
+        if (x < 0) {
+            return scale[1];
+        } else {
+            return scale[0];
+        }
+    } else {
+        if (x < 0) {
+            return scale[0];
+        } else {
+            return scale[1];
+        }
+    }
+}
+
+transLocToPx = function(x, scale, flip, dim) {
+
+    var transScale = function(x, scale, flip, dim) {
+        if (scale[0] === scale[1]) {
+            return transToPxZeroExtentScale(x, scale, flip, dim);
+        } else if (flip) {
+            return dim*(1 - (x - scale[0])/(scale[1] - scale[0]));
+        } else {
+            return dim*(x - scale[0])/(scale[1] - scale[0]);
         }
     }
     
@@ -156,37 +193,86 @@ transXtoPx = function(x, parent) {
             return x.replace(/px/, "");
         } else if (x.includes("%")) {
             var percent = Number(x.replace(/%/, ""));
-            return parent.width()*percent/100;
+            return dim*percent/100;
         } else {
             // Better be a number!!
-            return transScale(x, parent);
+            return transScale(x, scale, flip, dim);
         }
     }
     
     if (typeof(x) === "string") {
         return eval(x.replace(/[0-9]*[.]?[0-9]+(px|%)?/g, transform));
     } else {
-        return transScale(x, parent);
+        return transScale(x, scale, flip, dim);
     }
 }
 
-transXtoNative = function(x, parent) {
+transXtoPx = function(x, parent) {
+    return transLocToPx(x, parent.xscale(), parent.xflip(), parent.width());
+}
 
-    var toNative = function(x, parent) {
-        var xs = parent.xscale();
-        if (xs[0] < xs[1]) {
-            return xs[0] + x/parent.width()*(xs[1] - xs[0]);
+transYtoPx = function(x, parent) {
+    return transLocToPx(x, parent.yscale(), parent.yflip(), parent.height());
+}
+
+transDimToPx = function(x, scale, flip, dim) {
+
+    var transScale = function(x, scale, flip, dim) {
+        if (scale[0] === scale[1]) {
+            return transToPxZeroExtentScale(x, scale, flip, dim);
         } else {
-            return xs[0] - x/parent.width()*(xs[0] - xs[1]);
+            return dim*x/(scale[1] - scale[0]);
+        }
+    }
+    
+    var transform = function(x) {
+        // FIXME: special case for "auto" ?
+        // (propagate to other trans*() functions)
+        if (x.includes("px")) {
+            return x.replace(/px/, "");
+        } else if (x.includes("%")) {
+            var percent = Number(x.replace(/%/, ""));
+            return dim*percent/100;
+        } else {
+            // Better be a number!!
+            return transScale(x, scale, flip, dim);
+        }
+    }
+    
+    if (typeof(x) === "string") {
+        return eval(x.replace(/[0-9]*[.]?[0-9]+(px|%)?/g, transform));
+    } else {
+        return transScale(x, scale, flip, dim);
+    }
+}
+
+transWtoPx = function(x, parent) {
+    return transDimToPx(x, parent.xscale(), parent.xflip(), parent.width());
+}
+
+transHtoPx = function(x, parent) {
+    return transDimToPx(x, parent.yscale(), parent.yflip(), parent.height());
+}
+
+transLocToNative = function(x, scale, flip, dim) {
+
+    var toNative = function(x, scale, flip, dim) {
+        if (dim === 0) {
+            return transToNativeZeroExtentScale(x, scale, flip);
+        } else if (flip) {
+            return scale[0] - x/dim*(scale[0] - scale[1]);
+        } else {
+            return scale[0] + x/dim*(scale[1] - scale[0]);
         }
     }
     
     var transform = function(x) {
         if (x.includes("px")) {
-            return toNative(x.replace(/px/, ""));
+            var px = Number(x.replace(/px/, ""));
+            return toNative(px, scale, flip, dim);
         } else if (x.includes("%")) {
             var percent = Number(x.replace(/%/, ""));
-            return toNative(parent.width()*percent/100, parent);
+            return toNative(dim*percent/100, scale, flip, dim);
         } else {
             // Better be a number!!
             return Number(x);
@@ -200,115 +286,12 @@ transXtoNative = function(x, parent) {
     }
 }
 
-transYtoPx = function(y, parent) {
-
-    var transScale = function(y, parent) {
-        var ys = parent.yscale();
-        if (ys[0] < ys[1]) {
-            return parent.height()*(y - ys[0])/(ys[1] - ys[0]);
-        } else {
-            return parent.height()*(1 - (y - ys[1])/(ys[0] - ys[1]));
-        }
-    }
-    
-    var transform = function(x) {
-        if (x.includes("px")) {
-            return Number(x.replace(/px/, ""));
-        } else if (x.includes("%")) {
-            var percent = Number(x.replace(/%/, ""));
-            return parent.height()*percent/100;
-        } else {
-            // Better be a number!!
-            return transScale(x, parent);
-        }
-    }
-    
-    if (typeof(y) === "string") {
-        return eval(y.replace(/[0-9]*[.]?[0-9]+(px|%)?/g, transform));
-    } else {
-        return transScale(y, parent);
-    }
+transXtoNative = function(x, parent) {
+    return transLocToNative(x, parent.xscale(), parent.xflip(), parent.width());
 }
 
-transYtoNative = function(y, parent) {
-
-    var toNative = function(y, parent) {
-        var ys = parent.yscale();
-        if (ys[0] < ys[1]) {
-            return ys[0] + y/parent.height()*(ys[1] - ys[0]);
-        } else {
-            return ys[0] - y/parent.height()*(ys[0] - ys[1]);
-        }
-    }
-    
-    var transform = function(x) {
-        if (x.includes("px")) {
-            return toNative(x.replace(/px/, ""));
-        } else if (x.includes("%")) {
-            var percent = Number(x.replace(/%/, ""));
-            return toNative(parent.height()*percent/100, parent);
-        } else {
-            // Better be a number!!
-            return Number(x);
-        }
-    }
-    
-    if (typeof(y) === "string") {
-        return eval(y.replace(/[0-9]*[.]?[0-9]+(px|%)?/g, transform));
-    } else {
-        return y;
-    }
-}
-
-transformW = function(w, parent) {
-
-    var transScale = function(w, parent) {
-        var xs = parent.xscale();
-        return parent.width()*w/(xs[1] - xs[0]);
-    }
-    
-    var transform = function(x) {
-        if (x.includes("px")) {
-            return x.replace(/px/, "");
-        } else if (x.includes("%")) {
-            var percent = Number(x.replace(/%/, ""));
-            return parent.width()*percent/100;
-        } else {
-            // Better be a number!!
-            return transScale(x, parent);
-        }
-    }
-    
-    if (typeof(w) === "string") {
-        return eval(w.replace(/[0-9]*[.]?[0-9]+(px|%)?/g, transform));
-    } else {
-        return transScale(w, parent);
-    }
-}
-
-transformH = function(h, parent) {
-
-    var transScale = function(h, parent) {
-        var ys = parent.yscale();
-        return parent.height()*h/(ys[1] - ys[0]);
-    }
-    
-    var transform = function(x) {
-        if (x.includes("px")) {
-            return x.replace(/px/, "");
-        } else if (x.includes("%")) {
-            var percent = Number(x.replace(/%/, ""));
-            return parent.height()*percent/100;
-        } else {
-            // Better be a number!!
-            return transScale(x, parent);
-        }
-    }
-    
-    if (typeof(h) === "string") {
-        return eval(h.replace(/[0-9]*[.]?[0-9]+(px|%)?/g, transform));
-    } else {
-        return transScale(h, parent);
-    }
+transYtoNative = function(x, parent) {
+    return transLocToNative(x, parent.yscale(), parent.yflip(), 
+                            parent.height());
 }
 
