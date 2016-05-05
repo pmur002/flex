@@ -28,19 +28,13 @@ slightlyDifferent = function(a, b, eps) {
     return !nearlyEqual(a, b, eps) 
 }
 
-// A 'scale' can be [min,max] OR [max.min]
+// A 'scale' is [min,max] and 'flip' says whether to flip the scale
 // A 'range' is [min,max]
 
-// A 'scale' can never be truly zero-extent
-// (so that can always keep scale "direction", e.g., left-to-right)
-
-// A viewport 'widthInner' can never be truly zero
-// (so that can always calc scaleOuter from scaleInner)
+// Do not allow dimInner to be negative
 safeDim = function(dim) {
     if (dim < 0) {
         throw new Error("Invalid dimension");
-    } else if (dim === 0) {
-        return 0.001;
     } else {
         return dim;
     }
@@ -48,37 +42,52 @@ safeDim = function(dim) {
 
 // Modify a scale to match a range
 newScale = function(scale, range) {
-    var newscale = [];
-    if (range[0] === range[1]) {
-        var eps = Math.max(0.0001, range[0]/10000)
-        if (scale[0] < scale[1]) {
-            newscale[0] = range[0];
-            newscale[1] = scale[0] + eps;
-        } else {
-            newscale[1] = range[0];
-            newscale[0] = scale[0] + eps;
-        }
-    } else {
-        if (scale[0] < scale[1]) {
-            newscale[0] = range[0]
-            newscale[1] = range[1]
-        } else {
-            newscale[1] = range[0]
-            newscale[0] = range[1]
-        }
-    }
-    return newscale;
+    return range;
 }
 
 // Calculate left and right pixels for range based on scale and width
 // (or top and bottom pixels for range based on scale and height)
-newPixels = function(scale, range, dim) {
-    if (scale[0] < scale[1]) {
+newPixels = function(scale, flip, range, dim) {
+    if (scale[0] === scale[1]) {
+        var left, right;
+        if (flip) {
+            if (range[1] === scale[0]) {
+                left = dim/2;
+            } else if (range[1] > scale[0]) {
+                left = 0;
+            } else {
+                left = dim;
+            }
+            if (range[0] === scale[0]) {
+                right = dim/2;
+            } else if (range[0] > scale[0]) {
+                right = 0;
+            } else {
+                right = dim;
+            }            
+        } else {
+            if (range[0] === scale[0]) {
+                left = dim/2;
+            } else if (range[0] < scale[0]) {
+                left = 0;
+            } else {
+                left = dim;
+            }
+            if (range[1] === scale[0]) {
+                right = dim/2;
+            } else if (range[1] < scale[0]) {
+                right = 0;
+            } else {
+                right = dim;
+            }            
+        }
+        return [ left, right ];
+    } else if (flip) {
+        return [ dim - (range[1] - scale[0])/(scale[1] - scale[0])*dim,
+                 dim - (range[0] - scale[0])/(scale[1] - scale[0])*dim ];
+    } else {
         return [ (range[0] - scale[0])/(scale[1] - scale[0])*dim,
                  (range[1] - scale[0])/(scale[1] - scale[0])*dim ];
-    } else {
-        return [ (scale[0] - range[1])/(scale[0] - scale[1])*dim,
-                 (scale[0] - range[0])/(scale[0] - scale[1])*dim ];
     }
 }
 
@@ -94,34 +103,38 @@ newTBmargins = function(tbPixels, bbox) {
 
 // Calculate outer scale 
 // based on left and right margins, innerWidth, and inner scale
-newOuterScale = function(margins, innerDim, innerScale) {
-    if (innerScale[0] < innerScale[1]) {
+newOuterScale = function(margins, innerDim, innerScale, flip) {
+    if (innerDim === 0) {
+        return innerScale;
+    } else if (flip) {
+        return [ innerScale[0] - 
+                 margins[1]/innerDim*(innerScale[1] - innerScale[0]),
+                 innerScale[1] + 
+                 margins[0]/innerDim*(innerScale[1] - innerScale[0]) ];
+    } else {
         return [ innerScale[0] - 
                  margins[0]/innerDim*(innerScale[1] - innerScale[0]),
                  innerScale[1] + 
                  margins[1]/innerDim*(innerScale[1] - innerScale[0]) ];
-    } else {
-        return [ innerScale[0] + 
-                 margins[0]/innerDim*(innerScale[0] - innerScale[1]),
-                 innerScale[1] -
-                 margins[1]/innerDim*(innerScale[0] - innerScale[1]) ];
     }    
 }
 
 // Calculate inner scale
 // based on left and right margins, outerWidth, and outer scale
 // (used in vp.syncFrom())
-newInnerScale = function(margins, outerDim, outerScale) {
-    if (outerScale[0] < outerScale[1]) {
+newInnerScale = function(margins, outerDim, outerScale, flip) {
+    if (outerDim === 0) {
+        return outerScale;
+    } else if (flip) {
+        return [ outerScale[0] +
+                 margins[1]/outerDim*(outerScale[1] - outerScale[0]),
+                 outerScale[1] - 
+                 margins[0]/outerDim*(outerScale[1] - outerScale[0]) ];
+    } else {
         return [ outerScale[0] +
                  margins[0]/outerDim*(outerScale[1] - outerScale[0]),
                  outerScale[1] - 
                  margins[1]/outerDim*(outerScale[1] - outerScale[0]) ];
-    } else {
-        return [ outerScale[0] -
-                 margins[0]/outerDim*(outerScale[0] - outerScale[1]),
-                 outerScale[1] + 
-                 margins[1]/outerDim*(outerScale[0] - outerScale[1]) ];
     }
 }
 

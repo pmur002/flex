@@ -1,5 +1,8 @@
 
-function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], clip=true) {
+// xflip means xscale goes right to left
+// yflip means yscale goes bottom to top
+function viewport(x, y, w, h, xscale=[0, 1], yscale=[0, 1], 
+                  xflip=false, yflip=true, clip=true) {
 
     if (!((xscale[0] != xscale[1]) && yscale[0] != yscale[1])) {
         throw new Error("Invalid viewport settings");

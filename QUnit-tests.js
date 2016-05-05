@@ -1,42 +1,42 @@
 QUnit.test( "newInnerScale() tests", function( assert ) {
-    function test(margins, dim, scale, model) {
-        var result = newInnerScale(margins, dim, scale);
+    function test(margins, dim, scale, flip, model) {
+        var result = newInnerScale(margins, dim, scale, flip);
         assert.deepEqual(result, model);
     }
     // Zero-extent scales
-    test([0, 0], 10, [0, 0], [0, 0]);
-    test([5, 5], 10, [0, 0], [0, 0]);
+    test([0, 0], 10, [0, 0], false, [0, 0]);
+    test([5, 5], 10, [0, 0], false, [0, 0]);
     // Zero margins
-    test([0, 0], 10, [0, 1], [0, 1]);
+    test([0, 0], 10, [0, 1], false, [0, 1]);
     // Left margin
-    test([5, 0], 10, [0, 1], [.5, 1]);
+    test([5, 0], 10, [0, 1], false, [.5, 1]);
     // Right margin
-    test([0, 5], 10, [0, 1], [0, .5]);    
+    test([0, 5], 10, [0, 1], false, [0, .5]);    
     // Ditto right-to-left scales
-    test([0, 0], 10, [1, 0], [1, 0]);
-    test([5, 0], 10, [1, 0], [.5, 0]);
-    test([0, 5], 10, [1, 0], [1, .5]);
+    test([0, 0], 10, [0, 1], true, [0, 1]);
+    test([5, 0], 10, [0, 1], true, [0, .5]);
+    test([0, 5], 10, [0, 1], true, [.5, 1]);
 
     // TODO: Zero-width
 })
 QUnit.test( "newOuterScale() tests", function( assert ) {
-    function test(margins, dim, scale, model) {
-        var result = newOuterScale(margins, dim, scale);
+    function test(margins, dim, scale, flip, model) {
+        var result = newOuterScale(margins, dim, scale, flip);
         assert.deepEqual(result, model);
     }
     // Zero-extent scales
-    test([0, 0], 10, [0, 0], [0, 0]);
-    test([5, 5], 10, [0, 0], [0, 0]);
+    test([0, 0], 10, [0, 0], false, [0, 0]);
+    test([5, 5], 10, [0, 0], false, [0, 0]);
     // Zero margins
-    test([0, 0], 10, [0, 1], [0, 1]);
+    test([0, 0], 10, [0, 1], false, [0, 1]);
     // Left margin
-    test([5, 0], 10, [0, 1], [-.5, 1]);
+    test([5, 0], 10, [0, 1], false, [-.5, 1]);
     // Right margin
-    test([0, 5], 10, [0, 1], [0, 1.5]);    
+    test([0, 5], 10, [0, 1], false, [0, 1.5]);    
     // Ditto right-to-left scales
-    test([0, 0], 10, [1, 0], [1, 0]);
-    test([5, 0], 10, [1, 0], [1.5, 0]);
-    test([0, 5], 10, [1, 0], [1, -.5]);
+    test([0, 0], 10, [0, 1], true, [0, 1]);
+    test([5, 0], 10, [0, 1], true, [0, 1.5]);
+    test([0, 5], 10, [0, 1], true, [-.5, 1]);
 
     // TODO: Zero-width
 })
@@ -75,26 +75,37 @@ QUnit.test( "newLRmargins() tests", function( assert ) {
     test([0, 10], { x: -5, width: 20 }, [5, 5]);
 })
 QUnit.test( "newPixels() tests", function( assert ) {
-    function test(scale, range, width, model) {
+    function test(scale, flip, range, width, model) {
         // Perform rounding to avoid floating-point differences
         // (this assumes that I am setting up my tests to give integer results)
-        var result = newPixels(scale, range, width);
+        var result = newPixels(scale, flip, range, width);
         assert.deepEqual([ Math.round(result[0]), Math.round(result[1]) ], 
                          model);
     }
     // New range identical to old scale
-    test([0, 1], [0, 1], 10, [0, 10]);
+    test([0, 1], false, [0, 1], 10, [0, 10]);
     // New range within old scale
-    test([0, 1], [0.1, .9], 10, [1, 9]);
+    test([0, 1], false, [0.1, .9], 10, [1, 9]);
     // New range outside old scale
-    test([0, 1], [-.5, 1.5], 10, [-5, 15]);
+    test([0, 1], false, [-.5, 1.5], 10, [-5, 15]);
     // New range overlaps old scale
-    test([0, 1], [.5, 1.5], 10, [5, 15]);    
+    test([0, 1], false, [.5, 1.5], 10, [5, 15]);   
+    // Zero-extent scale 
+    test([0, 0], false, [0, 0], 10, [5, 5]);
+    test([0, 0], false, [0, 1], 10, [5, 10]);
+    test([0, 0], false, [-1, 1], 10, [0, 10]);
+    test([0, 0], false, [1, 1], 10, [10, 10]);
+    test([0, 0], false, [-1, -1], 10, [0, 0]);
     // Ditto for right-to-left scale
-    test([1, 0], [0, 1], 10, [0, 10]);
-    test([1, 0], [0.1, .9], 10, [1, 9]);
-    test([1, 0], [-.5, 1.5], 10, [-5, 15]);
-    test([1, 0], [.5, 1.5], 10, [-5, 5]);    
+    test([0, 1], true, [0, 1], 10, [0, 10]);
+    test([0, 1], true, [0.1, .9], 10, [1, 9]);
+    test([0, 1], true, [-.5, 1.5], 10, [-5, 15]);
+    test([0, 1], true, [.5, 1.5], 10, [-5, 5]);    
+    test([0, 0], true, [0, 0], 10, [5, 5]);
+    test([0, 0], true, [0, 1], 10, [0, 5]);
+    test([0, 0], true, [-1, 1], 10, [0, 10]);
+    test([0, 0], true, [1, 1], 10, [0, 0]);
+    test([0, 0], true, [-1, -1], 10, [10, 10]);
 })
 QUnit.test( "newScale() tests", function( assert ) {
     function test(scale, range, result) {
@@ -103,20 +114,14 @@ QUnit.test( "newScale() tests", function( assert ) {
     }
     // Identical scale and range produces identical result
     test([0, 1], [0, 1], [0, 1]);
-    // Extend right end of left-to-right scale
+    // Extend right end of scale
     test([0, 1], [0, 1.5], [0, 1.5]);
-    // Extend left end of left-to-right scale
+    // Extend left end of scale
     test([0, 1], [-1, 1], [-1, 1]);
-    // Extend both ends of left-to-right scale
+    // Extend both ends of scale
     test([0, 1], [0.5, 1.5], [0.5, 1.5]);
     test([0, 1], [-1, .5], [-1, .5]);
-    // Ditto right-to-left scale
-    test([1, 0], [0, 1], [1, 0]);
-    test([1, 0], [0, 1.5], [1.5, 0]);
-    test([1, 0], [-1, 1], [1, -1]);
-    test([1, 0], [0.5, 1.5], [1.5, .5]);
-    test([1, 0], [-1, .5], [.5, -1]);
-    // New scale zero-extent
+    // New range zero-extent
     test([0, 1], [.5, .5], [.5, .5]);
     // Old scale zero-extent
     test([0, 0], [.5, 1.5], [.5, 1.5]);
