@@ -53,7 +53,7 @@ axisTest = function() {
     xa = new xaxis();
     vp2.add(xa, "static", "resize");
     vp1.syncTo(vp2, "xscaleData", "resize", "resize");
-    p = new points([1.5], [1]);
+    p = new points([1.5], [1.5]);
     vp1.add(p, "rescale", "static");    
 }
 

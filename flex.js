@@ -260,7 +260,7 @@ transLocToNative = function(x, scale, flip, dim) {
         if (dim === 0) {
             return transToNativeZeroExtentDim(x, scale, flip);
         } else if (flip) {
-            return scale[0] - x/dim*(scale[0] - scale[1]);
+            return scale[1] - x/dim*(scale[1] - scale[0]);
         } else {
             return scale[0] + x/dim*(scale[1] - scale[0]);
         }
